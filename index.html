@@ -32,7 +32,6 @@
             background: #1a1a1a;
         }
 
-        /* 背景图层 */
         .bg-layer {
             position: fixed;
             inset: 0;
@@ -46,7 +45,6 @@
             opacity: 1;
         }
 
-        /* 暗化遮罩 */
         .overlay {
             position: fixed;
             inset: 0;
@@ -57,7 +55,6 @@
             );
         }
 
-        /* 主容器 */
         .container {
             position: relative;
             z-index: 10;
@@ -69,7 +66,6 @@
             max-width: 500px;
         }
 
-        /* 当前音乐名称 */
         .now-playing {
             text-align: center;
             margin-bottom: 50px;
@@ -118,31 +114,43 @@
             opacity: 0;
             transform: scale(0.8);
             animation: scaleIn 0.6s ease 0.4s forwards;
+            position: relative;
         }
 
         .play-btn:hover {
             background: rgba(255, 255, 255, 0.15);
-            transform: scale(1.08);
-            box-shadow: 0 0 60px rgba(255, 255, 255, 0.15);
+            transform: scale(1.05);
         }
 
         .play-btn:active {
             transform: scale(0.95);
         }
 
-        .play-btn svg {
-            width: 36px;
-            height: 36px;
-            fill: var(--text-primary);
+        /* 播放/暂停图标 */
+        .play-btn .icon-play,
+        .play-btn .icon-pause {
             transition: all 0.3s ease;
         }
 
         .play-btn .icon-play {
-            margin-left: 4px;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 15px 0 15px 24px;
+            border-color: transparent transparent transparent #fff;
+            margin-left: 6px;
         }
 
         .play-btn .icon-pause {
             display: none;
+            gap: 8px;
+        }
+
+        .play-btn .icon-pause span {
+            width: 6px;
+            height: 28px;
+            background: #fff;
+            border-radius: 2px;
         }
 
         .play-btn.playing .icon-play {
@@ -150,10 +158,10 @@
         }
 
         .play-btn.playing .icon-pause {
-            display: block;
+            display: flex;
         }
 
-        /* 音乐波纹动画 */
+        /* 播放波纹 */
         .play-btn.playing::before {
             content: '';
             position: absolute;
@@ -164,24 +172,15 @@
         }
 
         @keyframes ripple {
-            0% {
-                transform: scale(1);
-                opacity: 1;
-            }
-            100% {
-                transform: scale(1.4);
-                opacity: 0;
-            }
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.4); opacity: 0; }
         }
 
         @keyframes scaleIn {
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
+            to { opacity: 1; transform: scale(1); }
         }
 
-        /* 音乐选择器 */
+        /* 选择器 */
         .selector {
             display: flex;
             gap: 12px;
@@ -215,7 +214,6 @@
         .selector-item:hover {
             background: rgba(255, 255, 255, 0.15);
             color: var(--text-primary);
-            transform: translateY(-2px);
         }
 
         .selector-item.active {
@@ -246,56 +244,190 @@
             to { transform: rotate(360deg); }
         }
 
-        /* 音量控制 */
-        .volume-wrap {
+        /* 底部控制栏通用样式 */
+        .control-pill {
             position: fixed;
-            bottom: 40px;
-            right: 40px;
+            bottom: 36px;
+            height: 44px;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 22px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             align-items: center;
-            gap: 12px;
             opacity: 0;
             animation: fadeUp 0.8s ease 0.8s forwards;
+            overflow: hidden;
         }
 
-        .volume-wrap svg {
+        .control-pill button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: color 0.2s ease;
+        }
+
+        .control-pill button:hover {
+            color: var(--text-primary);
+        }
+
+        .control-pill svg {
             width: 18px;
             height: 18px;
-            fill: var(--text-secondary);
+            fill: currentColor;
         }
 
-        .volume-slider {
+        /* 音量控制 - 右下角 */
+        .volume-control {
+            right: 24px;
+            padding: 0 14px;
+            transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 44px;
+        }
+
+        .volume-control.expanded {
+            width: 150px;
+        }
+
+        .volume-control .vol-btn {
+            flex-shrink: 0;
+            width: 18px;
+            height: 44px;
+        }
+
+        .volume-control .vol-slider-wrap {
+            display: flex;
+            align-items: center;
+            width: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-left: 0;
+        }
+
+        .volume-control.expanded .vol-slider-wrap {
+            width: 80px;
+            opacity: 1;
+            margin-left: 14px;
+        }
+
+        .vol-slider {
             -webkit-appearance: none;
             appearance: none;
             width: 80px;
-            height: 2px;
+            height: 3px;
             background: rgba(255, 255, 255, 0.2);
             border-radius: 2px;
             outline: none;
             cursor: pointer;
         }
 
-        .volume-slider::-webkit-slider-thumb {
+        .vol-slider::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 12px;
-            height: 12px;
+            width: 14px;
+            height: 14px;
             background: #fff;
             border-radius: 50%;
             cursor: pointer;
             transition: transform 0.2s ease;
         }
 
-        .volume-slider::-webkit-slider-thumb:hover {
-            transform: scale(1.2);
+        .vol-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
         }
 
-        .volume-slider::-moz-range-thumb {
-            width: 12px;
-            height: 12px;
+        .vol-slider::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
             background: #fff;
             border-radius: 50%;
             border: none;
             cursor: pointer;
+        }
+
+        /* 定时器控制 - 左下角 */
+        .timer-control {
+            left: 24px;
+            padding: 0 14px;
+            transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 44px;
+        }
+
+        .timer-control.expanded {
+            width: 200px;
+        }
+
+        .timer-control .timer-btn {
+            flex-shrink: 0;
+            width: 18px;
+            height: 44px;
+            position: relative;
+        }
+
+        .timer-control .timer-btn.active {
+            color: var(--text-primary);
+        }
+
+        .timer-control .timer-options {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            width: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-left: 0;
+        }
+
+        .timer-control.expanded .timer-options {
+            width: 140px;
+            opacity: 1;
+            margin-left: 12px;
+        }
+
+        .timer-opt {
+            padding: 6px 10px;
+            font-size: 0.7rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: var(--text-secondary);
+            border-radius: 12px;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+
+        .timer-opt:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        .timer-opt.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: var(--text-primary);
+        }
+
+        /* 倒计时显示 */
+        .countdown {
+            position: fixed;
+            bottom: 90px;
+            left: 24px;
+            font-size: 0.8rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .countdown.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
 
         /* 响应式 */
@@ -309,21 +441,42 @@
                 height: 85px;
             }
 
+            .play-btn .icon-play {
+                border-width: 12px 0 12px 20px;
+                margin-left: 5px;
+            }
+
+            .play-btn .icon-pause span {
+                width: 5px;
+                height: 24px;
+            }
+
             .selector-item {
                 width: 42px;
                 height: 42px;
                 font-size: 0.6rem;
             }
 
-            .volume-wrap {
-                right: 20px;
-                bottom: 30px;
+            .control-pill {
+                bottom: 28px;
+            }
+
+            .volume-control {
+                right: 16px;
+            }
+
+            .timer-control {
+                left: 16px;
+            }
+
+            .countdown {
+                left: 16px;
+                bottom: 82px;
             }
         }
     </style>
 </head>
 <body>
-    <!-- 背景图层容器 -->
     <div id="bgContainer"></div>
     <div class="overlay"></div>
 
@@ -334,16 +487,37 @@
         </div>
 
         <button class="play-btn" id="playBtn">
-            <svg class="icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-            <svg class="icon-pause" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            <div class="icon-play"></div>
+            <div class="icon-pause"><span></span><span></span></div>
         </button>
 
         <div class="selector" id="selector"></div>
     </div>
 
-    <div class="volume-wrap">
-        <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
-        <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="80">
+    <!-- 倒计时显示 -->
+    <div class="countdown" id="countdown"></div>
+
+    <!-- 定时器 - 左下角 -->
+    <div class="control-pill timer-control" id="timerControl">
+        <button class="timer-btn" id="timerBtn">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.2 3.2.8-1.3-4.5-2.7V7z"/></svg>
+        </button>
+        <div class="timer-options">
+            <button class="timer-opt" data-time="15">15m</button>
+            <button class="timer-opt" data-time="30">30m</button>
+            <button class="timer-opt" data-time="60">1h</button>
+            <button class="timer-opt" data-time="0">关</button>
+        </div>
+    </div>
+
+    <!-- 音量 - 右下角 -->
+    <div class="control-pill volume-control" id="volumeControl">
+        <button class="vol-btn" id="volBtn">
+            <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+        </button>
+        <div class="vol-slider-wrap">
+            <input type="range" class="vol-slider" id="volSlider" min="0" max="100" value="80">
+        </div>
     </div>
 
     <script>
@@ -360,7 +534,12 @@
         const selector = document.getElementById('selector');
         const playBtn = document.getElementById('playBtn');
         const currentTitle = document.getElementById('currentTitle');
-        const volumeSlider = document.getElementById('volumeSlider');
+        const volSlider = document.getElementById('volSlider');
+        const volumeControl = document.getElementById('volumeControl');
+        const volBtn = document.getElementById('volBtn');
+        const timerControl = document.getElementById('timerControl');
+        const timerBtn = document.getElementById('timerBtn');
+        const countdownEl = document.getElementById('countdown');
 
         // Web Audio API
         let audioContext = null;
@@ -371,6 +550,10 @@
         let currentIndex = 0;
         let isPlaying = false;
         let isLoading = false;
+
+        // 定时器
+        let timerInterval = null;
+        let remainingSeconds = 0;
 
         // 预创建背景图层
         musicData.forEach((item, index) => {
@@ -394,7 +577,7 @@
             if (!audioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 gainNode = audioContext.createGain();
-                gainNode.gain.value = volumeSlider.value / 100;
+                gainNode.gain.value = volSlider.value / 100;
                 gainNode.connect(audioContext.destination);
             }
             if (audioContext.state === 'suspended') {
@@ -434,7 +617,6 @@
 
             initAudioContext();
 
-            // 更新 UI
             const items = selector.querySelectorAll('.selector-item');
             const bgLayers = bgContainer.querySelectorAll('.bg-layer');
 
@@ -492,11 +674,92 @@
 
         playBtn.onclick = togglePlay;
 
-        volumeSlider.oninput = (e) => {
+        // 音量控制
+        volBtn.onclick = (e) => {
+            e.stopPropagation();
+            volumeControl.classList.toggle('expanded');
+            timerControl.classList.remove('expanded');
+        };
+
+        volSlider.oninput = (e) => {
             if (gainNode) {
                 gainNode.gain.value = e.target.value / 100;
             }
         };
+
+        // 定时器控制
+        timerBtn.onclick = (e) => {
+            e.stopPropagation();
+            timerControl.classList.toggle('expanded');
+            volumeControl.classList.remove('expanded');
+        };
+
+        document.querySelectorAll('.timer-opt').forEach(btn => {
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                const minutes = parseInt(btn.dataset.time);
+
+                document.querySelectorAll('.timer-opt').forEach(b => b.classList.remove('active'));
+
+                if (minutes === 0) {
+                    clearTimer();
+                    timerBtn.classList.remove('active');
+                } else {
+                    btn.classList.add('active');
+                    timerBtn.classList.add('active');
+                    startTimer(minutes);
+                }
+
+                setTimeout(() => {
+                    timerControl.classList.remove('expanded');
+                }, 200);
+            };
+        });
+
+        function startTimer(minutes) {
+            clearTimer();
+            remainingSeconds = minutes * 60;
+            updateCountdown();
+            countdownEl.classList.add('visible');
+
+            timerInterval = setInterval(() => {
+                remainingSeconds--;
+                if (remainingSeconds <= 0) {
+                    clearTimer();
+                    if (isPlaying) {
+                        togglePlay();
+                    }
+                } else {
+                    updateCountdown();
+                }
+            }, 1000);
+        }
+
+        function clearTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            remainingSeconds = 0;
+            countdownEl.classList.remove('visible');
+            document.querySelectorAll('.timer-opt').forEach(b => b.classList.remove('active'));
+        }
+
+        function updateCountdown() {
+            const mins = Math.floor(remainingSeconds / 60);
+            const secs = remainingSeconds % 60;
+            countdownEl.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // 点击其他区域关闭展开的控制栏
+        document.addEventListener('click', (e) => {
+            if (!volumeControl.contains(e.target)) {
+                volumeControl.classList.remove('expanded');
+            }
+            if (!timerControl.contains(e.target)) {
+                timerControl.classList.remove('expanded');
+            }
+        });
     </script>
 </body>
 </html>
