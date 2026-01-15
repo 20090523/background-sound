@@ -4,24 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>背景音</title>
-    <link rel="stylesheet" href="https://unpkg.com/mdui@2/mdui.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
-    <script src="https://unpkg.com/mdui@2/mdui.global.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
-            --md-sys-color-primary: #a8c7fa;
-            --md-sys-color-on-primary: #062e6f;
-            --md-sys-color-primary-container: #284777;
-            --md-sys-color-on-primary-container: #d3e3fd;
-            --md-sys-color-surface: #131316;
-            --md-sys-color-on-surface: #e3e2e6;
-            --md-sys-color-surface-variant: #44464f;
-            --md-sys-color-on-surface-variant: #c4c6d0;
-            --md-sys-color-outline: #8e9099;
-            --md-sys-color-outline-variant: #44464f;
-            --md-sys-color-inverse-surface: #e3e2e6;
-            --md-sys-color-inverse-on-surface: #131316;
-            --md-sys-color-secondary-container: rgba(255, 255, 255, 0.12);
+            --text-primary: #fff;
+            --text-secondary: rgba(255, 255, 255, 0.6);
+            --glass: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.12);
         }
 
         * {
@@ -30,84 +20,74 @@
             box-sizing: border-box;
         }
 
-        html, body {
-            height: 100%;
-            overflow: hidden;
-        }
-
         body {
-            font-family: 'Roboto', system-ui, sans-serif;
-            background: var(--md-sys-color-surface);
-            color: var(--md-sys-color-on-surface);
-            transition: background-color 0.6s ease;
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-primary);
+            overflow: hidden;
+            background: #1a1a1a;
         }
 
-        .material-symbols-rounded {
-            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
-
-        /* 背景层 */
         .bg-layer {
             position: fixed;
             inset: 0;
             background-size: cover;
             background-position: center;
+            transition: opacity 1.2s ease;
             opacity: 0;
-            transition: opacity 1s ease;
-            z-index: 0;
         }
 
         .bg-layer.active {
             opacity: 1;
         }
 
-        .bg-overlay {
+        .overlay {
             position: fixed;
             inset: 0;
             background: linear-gradient(
                 to bottom,
-                rgba(0, 0, 0, 0.35) 0%,
-                rgba(0, 0, 0, 0.55) 100%
+                rgba(0, 0, 0, 0.3) 0%,
+                rgba(0, 0, 0, 0.5) 100%
             );
-            z-index: 1;
         }
 
-        /* 主容器 */
-        .main-container {
+        .container {
             position: relative;
             z-index: 10;
-            height: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 24px;
+            padding: 40px 20px;
+            width: 100%;
+            max-width: 500px;
         }
 
-        /* 当前播放 */
         .now-playing {
             text-align: center;
-            margin-bottom: 48px;
+            margin-bottom: 50px;
             opacity: 0;
             transform: translateY(20px);
-            animation: fadeUp 0.6s ease 0.1s forwards;
+            animation: fadeUp 0.8s ease 0.2s forwards;
         }
 
-        .now-playing-label {
+        .now-playing .label {
             font-size: 0.75rem;
-            font-weight: 500;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
             text-transform: uppercase;
-            color: var(--md-sys-color-on-surface-variant);
+            color: var(--text-secondary);
             margin-bottom: 12px;
         }
 
-        .now-playing-title {
-            font-size: 2.25rem;
+        .now-playing .title {
+            font-size: 2.5rem;
             font-weight: 300;
-            letter-spacing: 1px;
-            color: var(--md-sys-color-on-surface);
-            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+            letter-spacing: 2px;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
         }
 
         @keyframes fadeUp {
@@ -118,321 +98,429 @@
         }
 
         /* 播放按钮 */
-        .play-fab {
-            --md-fab-container-color: var(--md-sys-color-secondary-container);
-            --md-fab-icon-color: var(--md-sys-color-on-surface);
-            width: 96px;
-            height: 96px;
-            margin-bottom: 56px;
+        .play-btn {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-bottom: 60px;
             opacity: 0;
             transform: scale(0.8);
-            animation: scaleIn 0.5s ease 0.2s forwards;
+            animation: scaleIn 0.6s ease 0.4s forwards;
             position: relative;
         }
 
-        .play-fab::part(button) {
-            width: 96px;
-            height: 96px;
-            border-radius: 50%;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+        .play-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.05);
         }
 
-        .play-fab .material-symbols-rounded {
-            font-size: 42px;
+        .play-btn:active {
+            transform: scale(0.95);
         }
 
-        .play-fab.playing::before {
+        .play-btn .icon-play,
+        .play-btn .icon-pause {
+            color: #fff;
+            transition: all 0.3s ease;
+        }
+
+        .play-btn .icon-play {
+            margin-left: 4px;
+        }
+
+        .play-btn .icon-pause {
+            display: none;
+        }
+
+        .play-btn.playing .icon-play {
+            display: none;
+        }
+
+        .play-btn.playing .icon-pause {
+            display: block;
+        }
+
+        .play-btn.playing::before {
             content: '';
             position: absolute;
-            inset: -6px;
+            inset: -4px;
             border-radius: 50%;
-            border: 2px solid var(--md-sys-color-primary);
-            opacity: 0.6;
+            border: 1px solid rgba(255, 255, 255, 0.3);
             animation: ripple 2s ease-out infinite;
         }
 
-        @keyframes scaleIn {
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
         @keyframes ripple {
-            0% { transform: scale(1); opacity: 0.6; }
-            100% { transform: scale(1.35); opacity: 0; }
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.4); opacity: 0; }
         }
 
-        /* 音乐选择器 */
-        .selector-group {
+        @keyframes scaleIn {
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* 选择器 */
+        .selector {
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
             justify-content: center;
-            max-width: 360px;
+            max-width: 320px;
             opacity: 0;
-            animation: fadeUp 0.6s ease 0.3s forwards;
+            animation: fadeUp 0.8s ease 0.6s forwards;
         }
 
-        .selector-chip {
-            --md-filled-tonal-button-container-color: var(--md-sys-color-secondary-container);
-            --md-filled-tonal-button-label-text-color: var(--md-sys-color-on-surface-variant);
+        .selector-item {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--glass);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            min-width: 56px;
-        }
-
-        .selector-chip[selected] {
-            --md-filled-tonal-button-container-color: var(--md-sys-color-primary-container);
-            --md-filled-tonal-button-label-text-color: var(--md-sys-color-on-primary-container);
-        }
-
-        .selector-chip::part(button) {
-            border-radius: 16px;
-            padding: 0 16px;
-            height: 40px;
-        }
-
-        .selector-chip mdui-circular-progress {
-            --mdui-color-primary: var(--md-sys-color-on-surface);
-            width: 18px;
-            height: 18px;
-        }
-
-        /* 底部控制栏 */
-        .bottom-controls {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
-            padding: 16px 20px;
-            padding-bottom: max(16px, env(safe-area-inset-bottom));
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
             display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .selector-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: var(--text-primary);
+        }
+
+        .selector-item.active {
+            border-color: var(--text-primary);
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .selector-item.loading {
             pointer-events: none;
         }
 
-        .control-card {
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border-radius: 28px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+        .selector-item.loading::after {
+            content: '';
+            width: 16px;
+            height: 16px;
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        .selector-item.loading span {
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 底部控制按钮 */
+        .control-btn {
+            position: fixed;
+            bottom: 36px;
+            height: 44px;
             display: flex;
             align-items: center;
-            padding: 4px;
-            pointer-events: auto;
+            border-radius: 22px;
+            cursor: pointer;
             opacity: 0;
-            animation: fadeUp 0.6s ease 0.4s forwards;
-            transition: all 0.35s cubic-bezier(0.2, 0, 0, 1);
+            animation: fadeUp 0.8s ease 0.8s forwards;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             overflow: hidden;
+            border: none;
+            background: transparent;
         }
 
-        .control-card mdui-button-icon {
-            --md-icon-button-icon-color: var(--md-sys-color-on-surface-variant);
+        .control-btn .trigger {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
             flex-shrink: 0;
+            cursor: pointer;
+            background: none;
+            border: none;
         }
 
-        .control-card mdui-button-icon:hover {
-            --md-icon-button-icon-color: var(--md-sys-color-on-surface);
+        .control-btn:hover .trigger,
+        .control-btn.expanded .trigger {
+            color: var(--text-primary);
         }
 
-        .control-card mdui-button-icon.active {
-            --md-icon-button-icon-color: var(--md-sys-color-primary);
+        .control-btn.active .trigger {
+            color: var(--text-primary);
         }
 
-        /* 音量控制 */
-        .volume-card {
-            width: 48px;
+        .control-btn .trigger svg {
+            width: 20px;
+            height: 20px;
         }
 
-        .volume-card.expanded {
-            width: 180px;
-        }
-
-        .volume-slider-wrap {
+        .control-btn .content {
+            display: flex;
+            align-items: center;
             width: 0;
             opacity: 0;
             overflow: hidden;
-            transition: all 0.35s cubic-bezier(0.2, 0, 0, 1);
-            display: flex;
-            align-items: center;
-            padding-right: 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .volume-card.expanded .volume-slider-wrap {
-            width: 120px;
+        .control-btn.expanded {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .control-btn.expanded .content {
             opacity: 1;
+        }
+
+        /* 音量 - 右下角 */
+        .volume-btn {
+            right: 20px;
+        }
+
+        .volume-btn.expanded .content {
+            width: 100px;
+            padding-right: 16px;
+        }
+
+        .vol-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 90px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .vol-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: #fff;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .vol-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+
+        .vol-slider::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            background: #fff;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* 定时器 - 左下角 */
+        .timer-btn {
+            left: 20px;
+        }
+
+        .timer-btn.expanded .content {
+            width: 150px;
             padding-right: 12px;
         }
 
-        .volume-slider-wrap mdui-slider {
-            --md-slider-active-track-color: var(--md-sys-color-primary);
-            --md-slider-inactive-track-color: var(--md-sys-color-outline-variant);
-            --md-slider-handle-color: var(--md-sys-color-primary);
-            width: 100%;
-        }
-
-        /* 定时器控制 */
-        .timer-card {
-            width: 48px;
-            flex-direction: row-reverse;
-        }
-
-        .timer-card.expanded {
-            width: 220px;
-        }
-
         .timer-options {
-            width: 0;
-            opacity: 0;
-            overflow: hidden;
-            transition: all 0.35s cubic-bezier(0.2, 0, 0, 1);
             display: flex;
             align-items: center;
             gap: 4px;
-            padding-left: 0;
-        }
-
-        .timer-card.expanded .timer-options {
-            width: 160px;
-            opacity: 1;
-            padding-left: 4px;
         }
 
         .timer-opt {
-            --md-text-button-label-text-color: var(--md-sys-color-on-surface-variant);
-            min-width: 36px;
+            padding: 6px 10px;
+            font-size: 0.72rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: var(--text-secondary);
+            border-radius: 10px;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            background: none;
+            border: none;
+            cursor: pointer;
         }
 
-        .timer-opt::part(button) {
-            padding: 0 8px;
-            height: 32px;
-            border-radius: 12px;
+        .timer-opt:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
         }
 
-        .timer-opt[selected] {
-            --md-text-button-label-text-color: var(--md-sys-color-primary);
-            background: var(--md-sys-color-secondary-container);
-            border-radius: 12px;
+        .timer-opt.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: var(--text-primary);
         }
 
-        /* 倒计时 */
-        .countdown-display {
+        /* 倒计时显示 */
+        .countdown {
             position: fixed;
-            bottom: 80px;
+            bottom: 90px;
             left: 20px;
-            padding-bottom: env(safe-area-inset-bottom);
-            z-index: 99;
+            font-size: 0.85rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
             opacity: 0;
             transform: translateY(10px);
-            transition: all 0.3s ease;
-            pointer-events: none;
+            transition: all 0.4s ease;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .countdown-display.visible {
+        .countdown.visible {
             opacity: 1;
             transform: translateY(0);
         }
 
-        .countdown-display mdui-chip {
-            --md-assist-chip-container-color: rgba(0, 0, 0, 0.4);
-            --md-assist-chip-label-text-color: var(--md-sys-color-on-surface-variant);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+        .countdown.ending {
+            color: rgba(255, 200, 150, 0.8);
+        }
+
+        .countdown .cancel-btn {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+            padding: 0;
+        }
+
+        .countdown .cancel-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--text-primary);
+        }
+
+        .countdown .cancel-btn svg {
+            width: 12px;
+            height: 12px;
         }
 
         /* 响应式 */
         @media (max-width: 480px) {
-            .now-playing-title {
-                font-size: 1.75rem;
+            .now-playing .title {
+                font-size: 2rem;
             }
 
-            .play-fab {
-                width: 80px;
-                height: 80px;
+            .play-btn {
+                width: 85px;
+                height: 85px;
             }
 
-            .play-fab::part(button) {
-                width: 80px;
-                height: 80px;
+            .selector-item {
+                width: 42px;
+                height: 42px;
+                font-size: 0.6rem;
             }
 
-            .play-fab .material-symbols-rounded {
-                font-size: 36px;
+            .control-btn {
+                bottom: 28px;
             }
 
-            .selector-chip::part(button) {
-                height: 36px;
-                padding: 0 14px;
+            .volume-btn {
+                right: 16px;
             }
 
-            .bottom-controls {
-                padding: 12px 16px;
+            .timer-btn {
+                left: 16px;
+            }
+
+            .countdown {
+                left: 16px;
+                bottom: 82px;
             }
         }
     </style>
 </head>
 <body>
     <div id="bgContainer"></div>
-    <div class="bg-overlay"></div>
+    <div class="overlay"></div>
 
-    <div class="main-container">
+    <div class="container">
         <div class="now-playing">
-            <div class="now-playing-label">Now Playing</div>
-            <div class="now-playing-title" id="currentTitle">Ocean</div>
+            <div class="label">Now Playing</div>
+            <div class="title" id="currentTitle">Ocean</div>
         </div>
 
-        <mdui-fab class="play-fab" id="playBtn">
-            <mdui-icon slot="icon" class="material-symbols-rounded" id="playIcon">play_arrow</mdui-icon>
-        </mdui-fab>
+        <button class="play-btn" id="playBtn">
+            <i data-lucide="play" class="icon-play" stroke-width="1.5"></i>
+            <i data-lucide="pause" class="icon-pause" stroke-width="1.5"></i>
+        </button>
 
-        <div class="selector-group" id="selectorGroup"></div>
+        <div class="selector" id="selector"></div>
     </div>
 
     <!-- 倒计时显示 -->
-    <div class="countdown-display" id="countdownDisplay">
-        <mdui-chip elevated>
-            <mdui-icon slot="icon" class="material-symbols-rounded">timer</mdui-icon>
-            <span id="countdownText">0:00</span>
-        </mdui-chip>
+    <div class="countdown" id="countdown">
+        <span class="time"></span>
+        <button class="cancel-btn" title="取消定时">
+            <i data-lucide="x"></i>
+        </button>
     </div>
 
-    <!-- 底部控制栏 -->
-    <div class="bottom-controls">
-        <!-- ���时器 -->
-        <div class="control-card timer-card" id="timerCard">
-            <mdui-button-icon id="timerBtn">
-                <mdui-icon class="material-symbols-rounded">schedule</mdui-icon>
-            </mdui-button-icon>
+    <!-- 定时器 - 左下角 -->
+    <div class="control-btn timer-btn" id="timerBtn">
+        <button class="trigger">
+            <i data-lucide="timer"></i>
+        </button>
+        <div class="content">
             <div class="timer-options">
-                <mdui-button variant="text" class="timer-opt" data-time="15">15m</mdui-button>
-                <mdui-button variant="text" class="timer-opt" data-time="30">30m</mdui-button>
-                <mdui-button variant="text" class="timer-opt" data-time="60">1h</mdui-button>
-                <mdui-button variant="text" class="timer-opt" data-time="0">
-                    <mdui-icon class="material-symbols-rounded">close</mdui-icon>
-                </mdui-button>
-            </div>
-        </div>
-
-        <!-- 音量 -->
-        <div class="control-card volume-card" id="volumeCard">
-            <mdui-button-icon id="volBtn">
-                <mdui-icon class="material-symbols-rounded">volume_up</mdui-icon>
-            </mdui-button-icon>
-            <div class="volume-slider-wrap">
-                <mdui-slider id="volSlider" min="0" max="100" value="80"></mdui-slider>
+                <button class="timer-opt" data-time="15">15m</button>
+                <button class="timer-opt" data-time="30">30m</button>
+                <button class="timer-opt" data-time="60">1h</button>
             </div>
         </div>
     </div>
 
-    <!-- 隐藏的 canvas 用于提取颜色 -->
-    <canvas id="colorCanvas" width="1" height="1" style="display:none;"></canvas>
+    <!-- 音量 - 右下角 -->
+    <div class="control-btn volume-btn" id="volumeBtn">
+        <button class="trigger">
+            <i data-lucide="volume-2"></i>
+        </button>
+        <div class="content">
+            <input type="range" class="vol-slider" id="volSlider" min="0" max="100" value="80">
+        </div>
+    </div>
 
     <script>
+        // 初始化 Lucide 图标
+        lucide.createIcons();
+
         const musicData = [
             { name: 'Ocean', file: 'Ocean.m4a', img: 'Ocean.jpg', abbr: 'OCN' },
             { name: 'Brown Noise', file: 'BrownNoise.m4a', img: 'BrownNoise.jpg', abbr: 'BRN' },
@@ -442,21 +530,16 @@
             { name: 'White Noise', file: 'WhiteNoise.m4a', img: 'WhiteNoise.jpg', abbr: 'WHT' }
         ];
 
-        // DOM 元素
         const bgContainer = document.getElementById('bgContainer');
-        const selectorGroup = document.getElementById('selectorGroup');
+        const selector = document.getElementById('selector');
         const playBtn = document.getElementById('playBtn');
-        const playIcon = document.getElementById('playIcon');
         const currentTitle = document.getElementById('currentTitle');
         const volSlider = document.getElementById('volSlider');
-        const volumeCard = document.getElementById('volumeCard');
-        const volBtn = document.getElementById('volBtn');
-        const timerCard = document.getElementById('timerCard');
+        const volumeBtn = document.getElementById('volumeBtn');
         const timerBtn = document.getElementById('timerBtn');
-        const countdownDisplay = document.getElementById('countdownDisplay');
-        const countdownText = document.getElementById('countdownText');
-        const colorCanvas = document.getElementById('colorCanvas');
-        const colorCtx = colorCanvas.getContext('2d', { willReadFrequently: true });
+        const countdownEl = document.getElementById('countdown');
+        const countdownTime = countdownEl.querySelector('.time');
+        const cancelBtn = countdownEl.querySelector('.cancel-btn');
 
         // Web Audio API
         let audioContext = null;
@@ -467,13 +550,13 @@
         let currentIndex = 0;
         let isPlaying = false;
         let isLoading = false;
+        let baseVolume = volSlider.value / 100;
 
         // 定时器
         let timerInterval = null;
         let remainingSeconds = 0;
-
-        // 颜色缓存
-        const colorCache = {};
+        let selectedMinutes = 0;
+        const FADE_DURATION = 10; // 最后10秒渐弱
 
         // 预创建背景图层
         musicData.forEach((item, index) => {
@@ -482,134 +565,22 @@
             layer.style.backgroundImage = `url('img/${item.img}')`;
             if (index === 0) layer.classList.add('active');
             bgContainer.appendChild(layer);
-
-            // 预加载图片并提取颜色
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            img.onload = () => {
-                colorCache[index] = extractColors(img);
-                if (index === 0) applyColors(colorCache[0]);
-            };
-            img.src = `img/${item.img}`;
         });
 
         // 创建选择器
         musicData.forEach((item, index) => {
-            const chip = document.createElement('mdui-button');
-            chip.className = 'selector-chip';
-            chip.setAttribute('variant', 'tonal');
-            chip.innerHTML = `<span class="chip-label">${item.abbr}</span>`;
-            if (index === 0) chip.setAttribute('selected', '');
-            chip.onclick = () => selectMusic(index);
-            selectorGroup.appendChild(chip);
+            const btn = document.createElement('button');
+            btn.className = 'selector-item' + (index === 0 ? ' active' : '');
+            btn.innerHTML = `<span>${item.abbr}</span>`;
+            btn.onclick = () => selectMusic(index);
+            selector.appendChild(btn);
         });
-
-        // 提取图片主色调
-        function extractColors(img) {
-            const size = 50;
-            colorCanvas.width = size;
-            colorCanvas.height = size;
-            colorCtx.drawImage(img, 0, 0, size, size);
-
-            const imageData = colorCtx.getImageData(0, 0, size, size).data;
-            const colors = [];
-
-            for (let i = 0; i < imageData.length; i += 4) {
-                const r = imageData[i];
-                const g = imageData[i + 1];
-                const b = imageData[i + 2];
-                const hsl = rgbToHsl(r, g, b);
-                // 过滤太暗或太亮的颜色
-                if (hsl.l > 0.15 && hsl.l < 0.85 && hsl.s > 0.2) {
-                    colors.push({ r, g, b, h: hsl.h, s: hsl.s, l: hsl.l });
-                }
-            }
-
-            // 按色相分组并找主色
-            if (colors.length === 0) {
-                return { primary: { r: 168, g: 199, b: 250 } }; // 默认蓝色
-            }
-
-            // 简单平均获取主色
-            const avg = colors.reduce((acc, c) => {
-                acc.r += c.r;
-                acc.g += c.g;
-                acc.b += c.b;
-                return acc;
-            }, { r: 0, g: 0, b: 0 });
-
-            avg.r = Math.round(avg.r / colors.length);
-            avg.g = Math.round(avg.g / colors.length);
-            avg.b = Math.round(avg.b / colors.length);
-
-            return { primary: avg };
-        }
-
-        function rgbToHsl(r, g, b) {
-            r /= 255; g /= 255; b /= 255;
-            const max = Math.max(r, g, b), min = Math.min(r, g, b);
-            let h, s, l = (max + min) / 2;
-
-            if (max === min) {
-                h = s = 0;
-            } else {
-                const d = max - min;
-                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-                switch (max) {
-                    case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
-                    case g: h = ((b - r) / d + 2) / 6; break;
-                    case b: h = ((r - g) / d + 4) / 6; break;
-                }
-            }
-            return { h, s, l };
-        }
-
-        function hslToRgb(h, s, l) {
-            let r, g, b;
-            if (s === 0) {
-                r = g = b = l;
-            } else {
-                const hue2rgb = (p, q, t) => {
-                    if (t < 0) t += 1;
-                    if (t > 1) t -= 1;
-                    if (t < 1/6) return p + (q - p) * 6 * t;
-                    if (t < 1/2) return q;
-                    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
-                    return p;
-                };
-                const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-                const p = 2 * l - q;
-                r = hue2rgb(p, q, h + 1/3);
-                g = hue2rgb(p, q, h);
-                b = hue2rgb(p, q, h - 1/3);
-            }
-            return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
-        }
-
-        function applyColors(colors) {
-            if (!colors) return;
-
-            const { r, g, b } = colors.primary;
-            const hsl = rgbToHsl(r, g, b);
-
-            // 生成 Material Design 3 调色板
-            const primary = hslToRgb(hsl.h, Math.min(hsl.s * 1.2, 0.9), 0.75);
-            const onPrimary = hslToRgb(hsl.h, hsl.s, 0.15);
-            const primaryContainer = hslToRgb(hsl.h, Math.min(hsl.s * 0.8, 0.7), 0.35);
-            const onPrimaryContainer = hslToRgb(hsl.h, Math.min(hsl.s * 0.6, 0.5), 0.88);
-
-            const root = document.documentElement;
-            root.style.setProperty('--md-sys-color-primary', `rgb(${primary.r}, ${primary.g}, ${primary.b})`);
-            root.style.setProperty('--md-sys-color-on-primary', `rgb(${onPrimary.r}, ${onPrimary.g}, ${onPrimary.b})`);
-            root.style.setProperty('--md-sys-color-primary-container', `rgb(${primaryContainer.r}, ${primaryContainer.g}, ${primaryContainer.b})`);
-            root.style.setProperty('--md-sys-color-on-primary-container', `rgb(${onPrimaryContainer.r}, ${onPrimaryContainer.g}, ${onPrimaryContainer.b})`);
-        }
 
         function initAudioContext() {
             if (!audioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 gainNode = audioContext.createGain();
-                gainNode.gain.value = volSlider.value / 100;
+                gainNode.gain.value = baseVolume;
                 gainNode.connect(audioContext.destination);
             }
             if (audioContext.state === 'suspended') {
@@ -649,26 +620,21 @@
 
             initAudioContext();
 
-            const chips = selectorGroup.querySelectorAll('.selector-chip');
+            const items = selector.querySelectorAll('.selector-item');
             const bgLayers = bgContainer.querySelectorAll('.bg-layer');
 
-            chips[currentIndex].removeAttribute('selected');
+            items[currentIndex].classList.remove('active');
             bgLayers[currentIndex].classList.remove('active');
 
-            chips[index].setAttribute('selected', '');
+            items[index].classList.add('active');
             bgLayers[index].classList.add('active');
 
             currentIndex = index;
             currentTitle.textContent = musicData[index].name;
 
-            // 应用新的配色
-            if (colorCache[index]) {
-                applyColors(colorCache[index]);
-            }
-
             if (isPlaying) {
                 isLoading = true;
-                chips[index].innerHTML = '<mdui-circular-progress></mdui-circular-progress>';
+                items[index].classList.add('loading');
 
                 try {
                     const buffer = await loadAudioBuffer(`music/${musicData[index].file}`);
@@ -677,7 +643,7 @@
                     console.error('加载失败:', e);
                 } finally {
                     isLoading = false;
-                    chips[index].innerHTML = `<span class="chip-label">${musicData[index].abbr}</span>`;
+                    items[index].classList.remove('loading');
                 }
             }
         }
@@ -685,120 +651,142 @@
         async function togglePlay() {
             initAudioContext();
 
-            const chips = selectorGroup.querySelectorAll('.selector-chip');
+            const items = selector.querySelectorAll('.selector-item');
 
             if (isPlaying) {
                 stopCurrentSource();
                 playBtn.classList.remove('playing');
-                playIcon.textContent = 'play_arrow';
                 isPlaying = false;
             } else {
                 isLoading = true;
-                chips[currentIndex].innerHTML = '<mdui-circular-progress></mdui-circular-progress>';
+                items[currentIndex].classList.add('loading');
 
                 try {
                     const buffer = await loadAudioBuffer(`music/${musicData[currentIndex].file}`);
+                    // 恢复音量
+                    if (gainNode) gainNode.gain.value = baseVolume;
                     playWithWebAudio(buffer);
                     playBtn.classList.add('playing');
-                    playIcon.textContent = 'pause';
                     isPlaying = true;
                 } catch (e) {
                     console.error('加载失败:', e);
                 } finally {
                     isLoading = false;
-                    chips[currentIndex].innerHTML = `<span class="chip-label">${musicData[currentIndex].abbr}</span>`;
+                    items[currentIndex].classList.remove('loading');
                 }
             }
         }
 
         playBtn.onclick = togglePlay;
 
-        // 音量控制
-        volBtn.onclick = (e) => {
+        // 控制按钮展开/收起
+        function toggleControlBtn(btn, otherBtn) {
+            btn.classList.toggle('expanded');
+            otherBtn.classList.remove('expanded');
+        }
+
+        volumeBtn.querySelector('.trigger').onclick = (e) => {
             e.stopPropagation();
-            volumeCard.classList.toggle('expanded');
-            timerCard.classList.remove('expanded');
+            toggleControlBtn(volumeBtn, timerBtn);
         };
 
-        volSlider.addEventListener('input', (e) => {
-            if (gainNode) {
-                gainNode.gain.value = e.target.value / 100;
+        timerBtn.querySelector('.trigger').onclick = (e) => {
+            e.stopPropagation();
+            toggleControlBtn(timerBtn, volumeBtn);
+        };
+
+        volSlider.oninput = (e) => {
+            baseVolume = e.target.value / 100;
+            if (gainNode && remainingSeconds <= 0) {
+                gainNode.gain.value = baseVolume;
             }
-        });
-
-        // 定时器控制
-        timerBtn.onclick = (e) => {
-            e.stopPropagation();
-            timerCard.classList.toggle('expanded');
-            volumeCard.classList.remove('expanded');
         };
 
+        // 定时器选项
         document.querySelectorAll('.timer-opt').forEach(btn => {
             btn.onclick = (e) => {
                 e.stopPropagation();
                 const minutes = parseInt(btn.dataset.time);
 
-                document.querySelectorAll('.timer-opt').forEach(b => b.removeAttribute('selected'));
-
-                if (minutes === 0) {
-                    clearTimer();
-                    timerBtn.classList.remove('active');
-                } else {
-                    btn.setAttribute('selected', '');
-                    timerBtn.classList.add('active');
-                    startTimer(minutes);
-                }
+                document.querySelectorAll('.timer-opt').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                timerBtn.classList.add('active');
+                startTimer(minutes);
 
                 setTimeout(() => {
-                    timerCard.classList.remove('expanded');
-                }, 200);
+                    timerBtn.classList.remove('expanded');
+                }, 250);
             };
         });
 
         function startTimer(minutes) {
-            clearTimer();
+            clearTimer(false);
+            selectedMinutes = minutes;
             remainingSeconds = minutes * 60;
             updateCountdown();
-            countdownDisplay.classList.add('visible');
-            timerBtn.classList.add('active');
+            countdownEl.classList.add('visible');
+            countdownEl.classList.remove('ending');
 
             timerInterval = setInterval(() => {
                 remainingSeconds--;
+
                 if (remainingSeconds <= 0) {
-                    clearTimer();
-                    timerBtn.classList.remove('active');
+                    // 停止播放
                     if (isPlaying) {
                         togglePlay();
                     }
+                    clearTimer(true);
                 } else {
+                    // 最后几秒渐弱
+                    if (remainingSeconds <= FADE_DURATION && gainNode) {
+                        const fadeRatio = remainingSeconds / FADE_DURATION;
+                        gainNode.gain.value = baseVolume * fadeRatio;
+                        countdownEl.classList.add('ending');
+                    }
                     updateCountdown();
                 }
             }, 1000);
         }
 
-        function clearTimer() {
+        function clearTimer(resetUI = true) {
             if (timerInterval) {
                 clearInterval(timerInterval);
                 timerInterval = null;
             }
             remainingSeconds = 0;
-            countdownDisplay.classList.remove('visible');
-            document.querySelectorAll('.timer-opt').forEach(b => b.removeAttribute('selected'));
+            selectedMinutes = 0;
+
+            if (resetUI) {
+                countdownEl.classList.remove('visible');
+                countdownEl.classList.remove('ending');
+                timerBtn.classList.remove('active');
+                document.querySelectorAll('.timer-opt').forEach(b => b.classList.remove('active'));
+
+                // 恢复音量
+                if (gainNode) {
+                    gainNode.gain.value = baseVolume;
+                }
+            }
         }
 
         function updateCountdown() {
             const mins = Math.floor(remainingSeconds / 60);
             const secs = remainingSeconds % 60;
-            countdownText.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+            countdownTime.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
         }
+
+        // 取消定时器
+        cancelBtn.onclick = () => {
+            clearTimer(true);
+        };
 
         // 点击其他区域关闭
         document.addEventListener('click', (e) => {
-            if (!volumeCard.contains(e.target)) {
-                volumeCard.classList.remove('expanded');
+            if (!volumeBtn.contains(e.target)) {
+                volumeBtn.classList.remove('expanded');
             }
-            if (!timerCard.contains(e.target)) {
-                timerCard.classList.remove('expanded');
+            if (!timerBtn.contains(e.target)) {
+                timerBtn.classList.remove('expanded');
             }
         });
     </script>
