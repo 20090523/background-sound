@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>背景音</title>
+    <style>
+        :root {
+            --primary-color: #ffffff;
+            --bg-overlay: rgba(0, 0, 0, 0.4);
+            --item-bg: rgba(255, 255, 255, 0.1);
+            --item-active-bg: rgba(255, 255, 255, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--primary-color);
+            overflow: hidden;
+            transition: background-image 0.8s ease-in-out;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-overlay);
+            z-index: -1;
+        }
+
+        header {
+            margin-top: 60px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 300;
+            letter-spacing: 8px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .music-list {
+            margin-top: 50px;
+            width: 80%;
+            max-width: 400px;
+            list-style: none;
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-bottom: 100px;
+        }
+
+        .music-item {
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            background: var(--item-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .music-item:hover {
+            background: var(--item-active-bg);
+        }
+
+        .music-item.active {
+            background: var(--item-active-bg);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: scale(1.02);
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .play-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .play-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(1.1);
+        }
+
+        .play-btn svg {
+            width: 30px;
+            height: 30px;
+            fill: #fff;
+        }
+
+        /* 隐藏滚动条 */
+        .music-list::-webkit-scrollbar {
+            width: 0;
+            background: transparent;
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay"></div>
+    <header>
+        <h1>背景音</h1>
+    </header>
+
+    <ul class="music-list" id="musicList">
+        <!-- 音乐列表项将由 JS 生成 -->
+    </ul>
+
+    <div class="controls">
+        <button class="play-btn" id="playBtn">
+            <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <svg id="pauseIcon" viewBox="0 0 24 24" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        </button>
+    </div>
+
+    <audio id="audioPlayer"></audio>
+
+    <script>
+        const musicData = [
+            { name: 'Ocean', file: 'Ocean.m4a', img: 'Ocean.jpg' },
+            { name: 'Brown Noise', file: 'BrownNoise.m4a', img: 'BrownNoise.jpg' },
+            { name: 'Pink Noise', file: 'PinkNoise.m4a', img: 'PinkNoise.jpg' },
+            { name: 'Rain', file: 'Rain.m4a', img: 'Rain.jpg' },
+            { name: 'Stream', file: 'Stream.m4a', img: 'Stream.jpg' },
+            { name: 'White Noise', file: 'WhiteNoise.m4a', img: 'WhiteNoise.jpg' }
+        ];
+
+        const musicList = document.getElementById('musicList');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const playBtn = document.getElementById('playBtn');
+        const playIcon = document.getElementById('playIcon');
+        const pauseIcon = document.getElementById('pauseIcon');
+
+        let currentIndex = -1;
+        let isPlaying = false;
+
+        // 初始化列表
+        musicData.forEach((item, index) => {
+            const li = document.createElement('li');
+            li.className = 'music-item';
+            li.textContent = item.name;
+            li.onclick = () => selectMusic(index);
+            musicList.appendChild(li);
+        });
+
+        function selectMusic(index) {
+            if (currentIndex === index) return;
+
+            // 更新 UI
+            const items = document.querySelectorAll('.music-item');
+            if (currentIndex !== -1) items[currentIndex].classList.remove('active');
+            items[index].classList.add('active');
+
+            currentIndex = index;
+            const music = musicData[index];
+
+            // 更新背景
+            document.body.style.backgroundImage = `url('img/${music.img}')`;
+
+            // 更新音频源
+            audioPlayer.src = `music/${music.file}`;
+            
+            if (isPlaying) {
+                audioPlayer.play();
+            }
+        }
+
+        function togglePlay() {
+            if (currentIndex === -1) {
+                selectMusic(0);
+            }
+
+            if (isPlaying) {
+                audioPlayer.pause();
+                playIcon.style.display = 'block';
+                pauseIcon.style.display = 'none';
+            } else {
+                audioPlayer.play();
+                playIcon.style.display = 'none';
+                pauseIcon.style.display = 'block';
+            }
+            isPlaying = !isPlaying;
+        }
+
+        playBtn.onclick = togglePlay;
+
+        // 循环播放逻辑：直接衔接无停顿
+        audioPlayer.onended = () => {
+            audioPlayer.currentTime = 0;
+            audioPlayer.play();
+        };
+
+        // 默认选中第一个
+        selectMusic(0);
+    </script>
+</body>
+</html>
