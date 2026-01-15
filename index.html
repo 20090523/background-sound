@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>背景音</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #ffffff;
-            --bg-overlay: rgba(0, 0, 0, 0.4);
-            --item-bg: rgba(255, 255, 255, 0.1);
-            --item-active-bg: rgba(255, 255, 255, 0.3);
+            --text-primary: #fff;
+            --text-secondary: rgba(255, 255, 255, 0.6);
+            --glass: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.12);
         }
 
         * {
@@ -19,198 +20,390 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            height: 100vh;
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-primary);
+            overflow: hidden;
+            background: #1a1a1a;
+        }
+
+        /* 背景图层 */
+        .bg-layer {
+            position: fixed;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            transition: opacity 1.2s ease;
+            opacity: 0;
+        }
+
+        .bg-layer.active {
+            opacity: 1;
+        }
+
+        /* 暗化遮罩 */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(
+                to bottom,
+                rgba(0, 0, 0, 0.3) 0%,
+                rgba(0, 0, 0, 0.5) 100%
+            );
+        }
+
+        /* 主容器 */
+        .container {
+            position: relative;
+            z-index: 10;
             display: flex;
             flex-direction: column;
             align-items: center;
-            color: var(--primary-color);
-            overflow: hidden;
-            transition: background-image 0.8s ease-in-out;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-        }
-
-        .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
+            padding: 40px 20px;
             width: 100%;
-            height: 100%;
-            background: var(--bg-overlay);
-            z-index: -1;
+            max-width: 500px;
         }
 
-        header {
-            margin-top: 60px;
+        /* 当前音乐名称 */
+        .now-playing {
             text-align: center;
+            margin-bottom: 50px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 0.8s ease 0.2s forwards;
         }
 
-        h1 {
-            font-size: 2rem;
+        .now-playing .label {
+            font-size: 0.75rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .now-playing .title {
+            font-size: 2.5rem;
             font-weight: 300;
-            letter-spacing: 8px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            letter-spacing: 2px;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
         }
 
-        .music-list {
-            margin-top: 50px;
-            width: 80%;
-            max-width: 400px;
-            list-style: none;
-            flex-grow: 1;
-            overflow-y: auto;
-            padding-bottom: 100px;
+        @keyframes fadeUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        .music-item {
-            padding: 15px 20px;
-            margin-bottom: 10px;
-            background: var(--item-bg);
-            backdrop-filter: blur(5px);
-            border-radius: 12px;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            position: relative;
-        }
-
-        .music-item:hover {
-            background: var(--item-active-bg);
-        }
-
-        .music-item.active {
-            background: var(--item-active-bg);
-            border-color: rgba(255, 255, 255, 0.5);
-            transform: scale(1.02);
-        }
-
-        .music-item.loading::after {
-            content: '';
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 18px;
-            height: 18px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-top-color: #fff;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: translateY(-50%) rotate(360deg); }
-        }
-
-        .controls {
-            position: fixed;
-            bottom: 60px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
+        /* 播放按钮 */
         .play-btn {
-            width: 70px;
-            height: 70px;
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid #fff;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-bottom: 60px;
+            opacity: 0;
+            transform: scale(0.8);
+            animation: scaleIn 0.6s ease 0.4s forwards;
         }
 
         .play-btn:hover {
-            background: rgba(255, 255, 255, 0.4);
-            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.08);
+            box-shadow: 0 0 60px rgba(255, 255, 255, 0.15);
         }
 
-        .play-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
+        .play-btn:active {
+            transform: scale(0.95);
         }
 
         .play-btn svg {
-            width: 30px;
-            height: 30px;
-            fill: #fff;
+            width: 36px;
+            height: 36px;
+            fill: var(--text-primary);
+            transition: all 0.3s ease;
         }
 
-        /* 隐藏滚动条 */
-        .music-list::-webkit-scrollbar {
-            width: 0;
-            background: transparent;
+        .play-btn .icon-play {
+            margin-left: 4px;
+        }
+
+        .play-btn .icon-pause {
+            display: none;
+        }
+
+        .play-btn.playing .icon-play {
+            display: none;
+        }
+
+        .play-btn.playing .icon-pause {
+            display: block;
+        }
+
+        /* 音乐波纹动画 */
+        .play-btn.playing::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            animation: ripple 2s ease-out infinite;
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.4);
+                opacity: 0;
+            }
+        }
+
+        @keyframes scaleIn {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* 音乐选择器 */
+        .selector {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 320px;
+            opacity: 0;
+            animation: fadeUp 0.8s ease 0.6s forwards;
+        }
+
+        .selector-item {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .selector-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: var(--text-primary);
+            transform: translateY(-2px);
+        }
+
+        .selector-item.active {
+            border-color: var(--text-primary);
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .selector-item.loading {
+            pointer-events: none;
+        }
+
+        .selector-item.loading::after {
+            content: '';
+            width: 16px;
+            height: 16px;
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        .selector-item.loading span {
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 音量控制 */
+        .volume-wrap {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            opacity: 0;
+            animation: fadeUp 0.8s ease 0.8s forwards;
+        }
+
+        .volume-wrap svg {
+            width: 18px;
+            height: 18px;
+            fill: var(--text-secondary);
+        }
+
+        .volume-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 80px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #fff;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .volume-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .volume-slider::-moz-range-thumb {
+            width: 12px;
+            height: 12px;
+            background: #fff;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* 响应式 */
+        @media (max-width: 480px) {
+            .now-playing .title {
+                font-size: 2rem;
+            }
+
+            .play-btn {
+                width: 85px;
+                height: 85px;
+            }
+
+            .selector-item {
+                width: 42px;
+                height: 42px;
+                font-size: 0.6rem;
+            }
+
+            .volume-wrap {
+                right: 20px;
+                bottom: 30px;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- 背景图层容器 -->
+    <div id="bgContainer"></div>
     <div class="overlay"></div>
-    <header>
-        <h1>背景音</h1>
-    </header>
 
-    <ul class="music-list" id="musicList">
-        <!-- 音乐列表项将由 JS 生成 -->
-    </ul>
+    <div class="container">
+        <div class="now-playing">
+            <div class="label">Now Playing</div>
+            <div class="title" id="currentTitle">Ocean</div>
+        </div>
 
-    <div class="controls">
         <button class="play-btn" id="playBtn">
-            <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-            <svg id="pauseIcon" viewBox="0 0 24 24" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            <svg class="icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <svg class="icon-pause" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
         </button>
+
+        <div class="selector" id="selector"></div>
+    </div>
+
+    <div class="volume-wrap">
+        <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+        <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="80">
     </div>
 
     <script>
         const musicData = [
-            { name: 'Ocean', file: 'Ocean.m4a', img: 'Ocean.jpg' },
-            { name: 'Brown Noise', file: 'BrownNoise.m4a', img: 'BrownNoise.jpg' },
-            { name: 'Pink Noise', file: 'PinkNoise.m4a', img: 'PinkNoise.jpg' },
-            { name: 'Rain', file: 'Rain.m4a', img: 'Rain.jpg' },
-            { name: 'Stream', file: 'Stream.m4a', img: 'Stream.jpg' },
-            { name: 'White Noise', file: 'WhiteNoise.m4a', img: 'WhiteNoise.jpg' }
+            { name: 'Ocean', file: 'Ocean.m4a', img: 'Ocean.jpg', abbr: 'OCN' },
+            { name: 'Brown Noise', file: 'BrownNoise.m4a', img: 'BrownNoise.jpg', abbr: 'BRN' },
+            { name: 'Pink Noise', file: 'PinkNoise.m4a', img: 'PinkNoise.jpg', abbr: 'PNK' },
+            { name: 'Rain', file: 'Rain.m4a', img: 'Rain.jpg', abbr: 'RAN' },
+            { name: 'Stream', file: 'Stream.m4a', img: 'Stream.jpg', abbr: 'STM' },
+            { name: 'White Noise', file: 'WhiteNoise.m4a', img: 'WhiteNoise.jpg', abbr: 'WHT' }
         ];
 
-        const musicList = document.getElementById('musicList');
+        const bgContainer = document.getElementById('bgContainer');
+        const selector = document.getElementById('selector');
         const playBtn = document.getElementById('playBtn');
-        const playIcon = document.getElementById('playIcon');
-        const pauseIcon = document.getElementById('pauseIcon');
+        const currentTitle = document.getElementById('currentTitle');
+        const volumeSlider = document.getElementById('volumeSlider');
 
-        // Web Audio API 相关
+        // Web Audio API
         let audioContext = null;
         let gainNode = null;
         let currentSource = null;
-        let audioBufferCache = {};
+        const audioBufferCache = {};
 
-        let currentIndex = -1;
+        let currentIndex = 0;
         let isPlaying = false;
         let isLoading = false;
 
-        // 初始化 AudioContext（需要用户交互后才能创建）
+        // 预创建背景图层
+        musicData.forEach((item, index) => {
+            const layer = document.createElement('div');
+            layer.className = 'bg-layer';
+            layer.style.backgroundImage = `url('img/${item.img}')`;
+            if (index === 0) layer.classList.add('active');
+            bgContainer.appendChild(layer);
+        });
+
+        // 创建选择器
+        musicData.forEach((item, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'selector-item' + (index === 0 ? ' active' : '');
+            btn.innerHTML = `<span>${item.abbr}</span>`;
+            btn.onclick = () => selectMusic(index);
+            selector.appendChild(btn);
+        });
+
         function initAudioContext() {
             if (!audioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 gainNode = audioContext.createGain();
+                gainNode.gain.value = volumeSlider.value / 100;
                 gainNode.connect(audioContext.destination);
             }
-            // 恢复被暂停的 AudioContext
             if (audioContext.state === 'suspended') {
                 audioContext.resume();
             }
         }
 
-        // 加载音频文件到 buffer
         async function loadAudioBuffer(url) {
-            if (audioBufferCache[url]) {
-                return audioBufferCache[url];
-            }
-
+            if (audioBufferCache[url]) return audioBufferCache[url];
             const response = await fetch(url);
             const arrayBuffer = await response.arrayBuffer();
             const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
@@ -218,42 +411,23 @@
             return audioBuffer;
         }
 
-        // 使用 Web Audio API 播放（真正无缝循环）
         function playWithWebAudio(buffer) {
-            // 停止当前播放
             stopCurrentSource();
-
-            // 创建新的 source
             const source = audioContext.createBufferSource();
             source.buffer = buffer;
-            source.loop = true; // 启用原生无缝循环
+            source.loop = true;
             source.connect(gainNode);
             source.start(0);
-
             currentSource = source;
         }
 
-        // 停止当前音源
         function stopCurrentSource() {
             if (currentSource) {
-                try {
-                    currentSource.stop();
-                } catch (e) {
-                    // 忽略已停止的 source
-                }
+                try { currentSource.stop(); } catch (e) {}
                 currentSource.disconnect();
                 currentSource = null;
             }
         }
-
-        // 初始化列表
-        musicData.forEach((item, index) => {
-            const li = document.createElement('li');
-            li.className = 'music-item';
-            li.textContent = item.name;
-            li.onclick = () => selectMusic(index);
-            musicList.appendChild(li);
-        });
 
         async function selectMusic(index) {
             if (currentIndex === index || isLoading) return;
@@ -261,34 +435,30 @@
             initAudioContext();
 
             // 更新 UI
-            const items = document.querySelectorAll('.music-item');
-            if (currentIndex !== -1) {
-                items[currentIndex].classList.remove('active');
-                items[currentIndex].classList.remove('loading');
-            }
+            const items = selector.querySelectorAll('.selector-item');
+            const bgLayers = bgContainer.querySelectorAll('.bg-layer');
+
+            items[currentIndex].classList.remove('active');
+            bgLayers[currentIndex].classList.remove('active');
+
             items[index].classList.add('active');
+            bgLayers[index].classList.add('active');
 
             currentIndex = index;
-            const music = musicData[index];
+            currentTitle.textContent = musicData[index].name;
 
-            // 更新背景
-            document.body.style.backgroundImage = `url('img/${music.img}')`;
-
-            // 如果正在播放，加载并播放新音频
             if (isPlaying) {
                 isLoading = true;
                 items[index].classList.add('loading');
-                playBtn.disabled = true;
 
                 try {
-                    const buffer = await loadAudioBuffer(`music/${music.file}`);
+                    const buffer = await loadAudioBuffer(`music/${musicData[index].file}`);
                     playWithWebAudio(buffer);
                 } catch (e) {
-                    console.error('加载音频失败:', e);
+                    console.error('加载失败:', e);
                 } finally {
                     isLoading = false;
                     items[index].classList.remove('loading');
-                    playBtn.disabled = false;
                 }
             }
         }
@@ -296,45 +466,37 @@
         async function togglePlay() {
             initAudioContext();
 
-            if (currentIndex === -1) {
-                await selectMusic(0);
-            }
+            const items = selector.querySelectorAll('.selector-item');
 
             if (isPlaying) {
-                // 暂停
                 stopCurrentSource();
-                playIcon.style.display = 'block';
-                pauseIcon.style.display = 'none';
+                playBtn.classList.remove('playing');
                 isPlaying = false;
             } else {
-                // 播放
-                const music = musicData[currentIndex];
-                const items = document.querySelectorAll('.music-item');
-
                 isLoading = true;
                 items[currentIndex].classList.add('loading');
-                playBtn.disabled = true;
 
                 try {
-                    const buffer = await loadAudioBuffer(`music/${music.file}`);
+                    const buffer = await loadAudioBuffer(`music/${musicData[currentIndex].file}`);
                     playWithWebAudio(buffer);
-                    playIcon.style.display = 'none';
-                    pauseIcon.style.display = 'block';
+                    playBtn.classList.add('playing');
                     isPlaying = true;
                 } catch (e) {
-                    console.error('加载音频失败:', e);
+                    console.error('加载失败:', e);
                 } finally {
                     isLoading = false;
                     items[currentIndex].classList.remove('loading');
-                    playBtn.disabled = false;
                 }
             }
         }
 
         playBtn.onclick = togglePlay;
 
-        // 默认选中第一个（但不播放）
-        selectMusic(0);
+        volumeSlider.oninput = (e) => {
+            if (gainNode) {
+                gainNode.gain.value = e.target.value / 100;
+            }
+        };
     </script>
 </body>
 </html>
