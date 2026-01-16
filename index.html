@@ -12,7 +12,7 @@
             --glass: rgba(255, 255, 255, 0.08);
             --glass-border: rgba(255, 255, 255, 0.12);
             --accent-blue: #3b82f6;
-            --ios-bg: rgba(25, 25, 25, 0.8);
+            --ios-bg: rgba(25, 25, 25, 0.85);
         }
 
         * {
@@ -109,9 +109,20 @@
             }
         }
 
-        .play-btn {
+        /* 播放按钮 */
+        .play-btn-wrapper {
+            position: relative;
             width: 100px;
             height: 100px;
+            margin-bottom: 60px;
+            opacity: 0;
+            transform: scale(0.8);
+            animation: scaleIn 0.6s ease 0.4s forwards;
+        }
+
+        .play-btn {
+            width: 100%;
+            height: 100%;
             border-radius: 50%;
             background: var(--glass);
             backdrop-filter: blur(20px);
@@ -122,11 +133,8 @@
             align-items: center;
             justify-content: center;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            margin-bottom: 60px;
-            opacity: 0;
-            transform: scale(0.8);
-            animation: scaleIn 0.6s ease 0.4s forwards;
             position: relative;
+            z-index: 2;
             color: #fff;
         }
 
@@ -145,197 +153,112 @@
             height: 48px;
         }
 
-        /* 波纹动画优化：停止播放时不消失，只是不再生成新波纹 */
-        .play-btn::before {
-            content: '';
+        /* 水波纹容器 */
+        .ripple-container {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .ripple {
             position: absolute;
             inset: -4px;
             border-radius: 50%;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            opacity: 0;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            animation: rippleExpand 2s ease-out forwards;
         }
 
-        .play-btn.playing::before {
-            animation: ripple 2s ease-out infinite;
-        }
-
-        @keyframes ripple {
+        @keyframes rippleExpand {
             0% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(1.4); opacity: 0; }
+            100% { transform: scale(1.5); opacity: 0; }
         }
 
         @keyframes scaleIn {
             to { opacity: 1; transform: scale(1); }
         }
 
-        /* 底部控制栏布局修复：恢复两侧布局 */
+        /* 底部控制栏 */
         .bottom-controls {
             position: fixed;
             bottom: 36px;
             left: 20px;
             right: 20px;
             display: flex;
-            justify-content: space-between; /* 关键：推向两侧 */
+            justify-content: space-between;
             align-items: center;
             z-index: 100;
         }
 
         .control-btn {
-            height: 44px;
-            display: flex;
-            align-items: center;
-            border-radius: 22px;
-            cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow: hidden;
-            background: transparent;
-        }
-
-        .control-btn .trigger {
             width: 44px;
             height: 44px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--text-secondary);
-            transition: color 0.3s ease;
-            flex-shrink: 0;
-            background: none;
-            border: none;
+            border-radius: 50%;
             cursor: pointer;
+            transition: all 0.3s ease;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
         }
 
-        .control-btn:hover .trigger, .control-btn.active .trigger {
+        .control-btn:hover {
             color: var(--text-primary);
         }
 
-        .control-btn .trigger svg {
+        .control-btn svg {
             width: 24px;
             height: 24px;
         }
 
-        .control-btn .content {
-            display: flex;
-            align-items: center;
-            width: 0;
-            opacity: 0;
-            overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .control-btn.expanded {
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .control-btn.expanded .content {
-            opacity: 1;
-            width: 140px;
-            padding-right: 16px;
-        }
-
-        /* 倒计时胶囊 - 底部中央 */
+        /* 倒计时显示 - 透明简洁风格 */
         .countdown-container {
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
             pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.4s ease;
         }
 
-        .countdown {
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            padding: 8px 12px 8px 16px;
-            border-radius: 24px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            font-size: 0.9rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            opacity: 0;
-            transform: translateY(10px);
-            transition: all 0.4s ease;
-            height: 40px;
+        .countdown-container.visible {
+            opacity: 1;
             pointer-events: auto;
         }
 
-        .countdown.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .countdown.ending {
-            background: rgba(220, 38, 38, 0.4);
-            border-color: rgba(220, 38, 38, 0.2);
-        }
-
-        .countdown .time {
+        .countdown-time {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+            font-size: 1.1rem;
             font-weight: 500;
+            color: var(--text-primary);
             letter-spacing: 0.5px;
         }
 
-        .countdown .cancel-btn {
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            cursor: pointer;
-            transition: all 0.2s ease;
+        .countdown-label {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
         }
 
-        /* 音量滑动条 */
-        .volume-slider-container {
-            width: 120px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            position: relative;
-            cursor: pointer;
-            touch-action: none;
+        .countdown-container.ending .countdown-time {
+            color: #f87171;
         }
 
-        .volume-track {
-            width: 100%;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 2px;
-            position: relative;
+        .countdown-container.ending .countdown-label {
+            color: rgba(248, 113, 113, 0.7);
         }
 
-        .volume-fill {
-            height: 100%;
-            background: #fff;
-            border-radius: 2px;
-            width: 80%;
-        }
-
-        .volume-thumb {
-            width: 18px;
-            height: 18px;
-            background: #fff;
-            border-radius: 50%;
-            position: absolute;
-            top: 50%;
-            left: 80%;
-            transform: translate(-50%, -50%);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-            z-index: 10;
-        }
-
-        /* iOS 风格 Action Sheet - 修复隐藏 Bug */
+        /* iOS 风格 Action Sheet */
         .ios-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.4);
             z-index: 1000;
             opacity: 0;
             visibility: hidden;
@@ -355,7 +278,7 @@
             max-width: 400px;
             margin: 0 auto;
             z-index: 1001;
-            transform: translateY(150%); /* 增加位移确保完全隐藏 */
+            transform: translateY(150%);
             transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
@@ -365,8 +288,8 @@
 
         .ios-menu-group {
             background: var(--ios-bg);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
             border-radius: 14px;
             overflow: hidden;
             margin-bottom: 8px;
@@ -375,14 +298,14 @@
         .ios-menu-item {
             width: 100%;
             padding: 16px;
-            background: none;
+            background: transparent;
             border: none;
             border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
             color: var(--accent-blue);
             font-size: 1.1rem;
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: background 0.15s ease;
             text-align: center;
         }
 
@@ -390,14 +313,76 @@
             border-bottom: none;
         }
 
-        .ios-menu-item:active {
-            background: rgba(255, 255, 255, 0.1);
+        .ios-menu-item.tapped {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        /* iOS 音量滑块菜单 */
+        .ios-volume-container {
+            padding: 24px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .ios-volume-icon {
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+
+        .ios-volume-icon svg {
+            width: 20px;
+            height: 20px;
+            display: block;
+        }
+
+        .ios-volume-slider {
+            flex: 1;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            position: relative;
+            cursor: pointer;
+            touch-action: none;
+        }
+
+        .ios-volume-track {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ios-volume-fill {
+            height: 100%;
+            background: #fff;
+            border-radius: 3px;
+            transition: width 0.05s ease;
+        }
+
+        .ios-volume-thumb {
+            width: 28px;
+            height: 28px;
+            background: #fff;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            transition: transform 0.1s ease;
+        }
+
+        .ios-volume-thumb:active {
+            transform: translate(-50%, -50%) scale(1.1);
         }
 
         .ios-cancel {
             background: var(--ios-bg);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
             border-radius: 14px;
             width: 100%;
             padding: 16px;
@@ -405,8 +390,14 @@
             color: var(--accent-blue);
             font-size: 1.1rem;
             font-weight: 600;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
             cursor: pointer;
             text-align: center;
+            transition: background 0.15s ease;
+        }
+
+        .ios-cancel.tapped {
+            background: rgba(255, 255, 255, 0.08);
         }
 
         @media (max-width: 480px) {
@@ -424,44 +415,31 @@
             <button class="song-selector-btn" id="songSelectorBtn">Ocean</button>
         </div>
 
-        <button class="play-btn" id="playBtn">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M6 10a7 7 0 1 1 13 3.6a10 10 0 0 1-2 2a8 8 0 0 0-2 3A4.5 4.5 0 0 1 8.2 20"/><path d="M10 10a3 3 0 1 1 5 2.2"/></g></svg>
-        </button>
+        <div class="play-btn-wrapper">
+            <div class="ripple-container" id="rippleContainer"></div>
+            <button class="play-btn" id="playBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M6 10a7 7 0 1 1 13 3.6a10 10 0 0 1-2 2a8 8 0 0 0-2 3A4.5 4.5 0 0 1 8.2 20"/><path d="M10 10a3 3 0 1 1 5 2.2"/></g></svg>
+            </button>
+        </div>
     </div>
 
     <!-- 底部控制栏 -->
     <div class="bottom-controls">
         <!-- 定时器 -->
-        <div class="control-btn timer-btn" id="timerBtn">
-            <button class="trigger">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M10 3q-.425 0-.712-.288T9 2t.288-.712T10 1h4q.425 0 .713.288T15 2t-.288.713T14 3zm2 11q.425 0 .713-.288T13 13V9q0-.425-.288-.712T12 8t-.712.288T11 9v4q0 .425.288.713T12 14m0 8q-1.85 0-3.488-.712T5.65 19.35t-1.937-2.863T3 13t.713-3.488T5.65 6.65t2.863-1.937T12 4q1.55 0 2.975.5t2.675 1.45l.7-.7q.275-.275.7-.275t.7.275t.275.7t-.275.7l-.7.7Q20 8.6 20.5 10.025T21 13q0 1.85-.713 3.488T18.35 19.35t-2.863 1.938T12 22m0-2q2.9 0 4.95-2.05T19 13t-2.05-4.95T12 6T7.05 8.05T5 13t2.05 4.95T12 20m0-7"/></svg>
-            </button>
-        </div>
+        <button class="control-btn" id="timerBtn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M10 3q-.425 0-.712-.288T9 2t.288-.712T10 1h4q.425 0 .713.288T15 2t-.288.713T14 3zm2 11q.425 0 .713-.288T13 13V9q0-.425-.288-.712T12 8t-.712.288T11 9v4q0 .425.288.713T12 14m0 8q-1.85 0-3.488-.712T5.65 19.35t-1.937-2.863T3 13t.713-3.488T5.65 6.65t2.863-1.937T12 4q1.55 0 2.975.5t2.675 1.45l.7-.7q.275-.275.7-.275t.7.275t.275.7t-.275.7l-.7.7Q20 8.6 20.5 10.025T21 13q0 1.85-.713 3.488T18.35 19.35t-2.863 1.938T12 22m0-2q2.9 0 4.95-2.05T19 13t-2.05-4.95T12 6T7.05 8.05T5 13t2.05 4.95T12 20m0-7"/></svg>
+        </button>
 
-        <!-- 倒计时胶囊 - 独立容器居中 -->
-        <div class="countdown-container">
-            <div class="countdown" id="countdown">
-                <span class="time">00:00</span>
-                <div class="cancel-btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </div>
-            </div>
+        <!-- 倒计时显示 -->
+        <div class="countdown-container" id="countdownContainer">
+            <span class="countdown-time" id="countdownTime">5 min</span>
+            <span class="countdown-label">后停止播放</span>
         </div>
 
         <!-- 音量调节 -->
-        <div class="control-btn volume-btn" id="volumeBtn">
-            <button class="trigger">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19 11.975q0-2.075-1.1-3.787t-2.95-2.563q-.375-.175-.55-.537t-.05-.738q.15-.4.538-.575t.787 0Q18.1 4.85 19.55 7.063T21 11.974t-1.45 4.913t-3.875 3.287q-.4.175-.788 0t-.537-.575q-.125-.375.05-.737t.55-.538q1.85-.85 2.95-2.562t1.1-3.788M7 15H4q-.425 0-.712-.288T3 14v-4q0-.425.288-.712T4 9h3l3.3-3.3q.475-.475 1.088-.213t.612.938v11.15q0 .675-.612.938T10.3 18.3zm9.5-3q0 1.05-.475 1.988t-1.25 1.537q-.25.15-.513.013T14 15.1V8.85q0-.3.263-.437t.512.012q.775.625 1.25 1.575t.475 2"/></svg>
-            </button>
-            <div class="content">
-                <div class="volume-slider-container" id="volumeSlider">
-                    <div class="volume-track">
-                        <div class="volume-fill" id="volumeFill"></div>
-                        <div class="volume-thumb" id="volumeThumb"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <button class="control-btn" id="volumeBtn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19 11.975q0-2.075-1.1-3.787t-2.95-2.563q-.375-.175-.55-.537t-.05-.738q.15-.4.538-.575t.787 0Q18.1 4.85 19.55 7.063T21 11.974t-1.45 4.913t-3.875 3.287q-.4.175-.788 0t-.537-.575q-.125-.375.05-.737t.55-.538q1.85-.85 2.95-2.562t1.1-3.788M7 15H4q-.425 0-.712-.288T3 14v-4q0-.425.288-.712T4 9h3l3.3-3.3q.475-.475 1.088-.213t.612.938v11.15q0 .675-.612.938T10.3 18.3zm9.5-3q0 1.05-.475 1.988t-1.25 1.537q-.25.15-.513.013T14 15.1V8.85q0-.3.263-.437t.512.012q.775.625 1.25 1.575t.475 2"/></svg>
+        </button>
     </div>
 
     <!-- iOS 风格菜单 -->
@@ -489,15 +467,12 @@
 
         const bgContainer = document.getElementById('bgContainer');
         const playBtn = document.getElementById('playBtn');
+        const rippleContainer = document.getElementById('rippleContainer');
         const songSelectorBtn = document.getElementById('songSelectorBtn');
-        const volumeSlider = document.getElementById('volumeSlider');
-        const volumeFill = document.getElementById('volumeFill');
-        const volumeThumb = document.getElementById('volumeThumb');
         const volumeBtn = document.getElementById('volumeBtn');
         const timerBtn = document.getElementById('timerBtn');
-        const countdownEl = document.getElementById('countdown');
-        const countdownTime = countdownEl.querySelector('.time');
-        const cancelBtn = countdownEl.querySelector('.cancel-btn');
+        const countdownContainer = document.getElementById('countdownContainer');
+        const countdownTime = document.getElementById('countdownTime');
         const iosOverlay = document.getElementById('iosOverlay');
         const iosMenu = document.getElementById('iosMenu');
         const iosMenuGroup = document.getElementById('iosMenuGroup');
@@ -508,15 +483,18 @@
         let currentSource = null;
         const audioBufferCache = {};
 
-        let currentIndex = parseInt(localStorage.getItem('bg_currentIndex')) || 0;
-        let baseVolume = parseFloat(localStorage.getItem('bg_baseVolume')) || 0.8;
+        let currentIndex = 0;
+        let baseVolume = 0.8;
         let isPlaying = false;
         let isLoading = false;
 
         let timerInterval = null;
         let remainingSeconds = 0;
         const FADE_DURATION = 10;
-        const CROSSFADE_TIME = 1.0; // 增加渐变时间
+        const CROSSFADE_TIME = 1.0;
+
+        // 水波纹控制
+        let rippleInterval = null;
 
         // 初始化背景
         musicData.forEach((item, index) => {
@@ -544,6 +522,32 @@
             return audioBufferCache[url] = await audioContext.decodeAudioData(arrayBuffer);
         }
 
+        // 水波纹管理
+        function createRipple() {
+            const ripple = document.createElement('div');
+            ripple.className = 'ripple';
+            rippleContainer.appendChild(ripple);
+
+            // 动画结束后移除
+            ripple.addEventListener('animationend', () => {
+                ripple.remove();
+            });
+        }
+
+        function startRipples() {
+            if (rippleInterval) return;
+            createRipple(); // 立即创建第一个
+            rippleInterval = setInterval(createRipple, 700);
+        }
+
+        function stopRipples() {
+            // 只停止生成新的，现有的会自动完成动画后消失
+            if (rippleInterval) {
+                clearInterval(rippleInterval);
+                rippleInterval = null;
+            }
+        }
+
         // 顺序淡入淡出逻辑
         async function switchMusic(index) {
             if (currentIndex === index || isLoading) return;
@@ -554,24 +558,21 @@
             const bgLayers = bgContainer.querySelectorAll('.bg-layer');
             bgLayers[currentIndex].classList.remove('active');
             bgLayers[index].classList.add('active');
-            
+
             currentIndex = index;
-            localStorage.setItem('bg_currentIndex', currentIndex);
             songSelectorBtn.textContent = musicData[index].name;
 
             if (isPlaying) {
-                // 1. 先淡出当前音乐
                 const now = audioContext.currentTime;
                 gainNode.gain.cancelScheduledValues(now);
                 gainNode.gain.setValueAtTime(gainNode.gain.value, now);
                 gainNode.gain.linearRampToValueAtTime(0, now + CROSSFADE_TIME);
 
-                // 2. 等待淡出完成后，加载并淡入新音乐
                 setTimeout(async () => {
                     try {
                         const buffer = await loadAudioBuffer(`music/${musicData[index].file}`);
                         if (currentSource) { currentSource.stop(); currentSource.disconnect(); }
-                        
+
                         const newSource = audioContext.createBufferSource();
                         newSource.buffer = buffer;
                         newSource.loop = true;
@@ -597,7 +598,10 @@
                 gainNode.gain.cancelScheduledValues(now);
                 gainNode.gain.setValueAtTime(gainNode.gain.value, now);
                 gainNode.gain.linearRampToValueAtTime(0, now + CROSSFADE_TIME);
-                
+
+                // 停止生成新水波纹，但让现有的完成动画
+                stopRipples();
+
                 setTimeout(() => {
                     if (!isPlaying && currentSource) {
                         currentSource.stop();
@@ -605,7 +609,7 @@
                         currentSource = null;
                     }
                 }, CROSSFADE_TIME * 1000);
-                
+
                 playBtn.classList.remove('playing');
                 isPlaying = false;
             } else {
@@ -623,62 +627,108 @@
                     gainNode.gain.cancelScheduledValues(audioContext.currentTime);
                     gainNode.gain.setValueAtTime(0, audioContext.currentTime);
                     gainNode.gain.linearRampToValueAtTime(baseVolume, audioContext.currentTime + CROSSFADE_TIME);
-                    
+
                     playBtn.classList.add('playing');
                     isPlaying = true;
+                    startRipples();
                 } finally { isLoading = false; songSelectorBtn.style.opacity = '1'; }
             }
         }
 
         playBtn.onclick = togglePlay;
 
-        function updateVolume(percent, save = true) {
-            percent = Math.max(0, Math.min(1, percent));
-            baseVolume = percent;
-            if (save) localStorage.setItem('bg_baseVolume', baseVolume);
-            
-            volumeFill.style.width = (percent * 100) + '%';
-            volumeThumb.style.left = (percent * 100) + '%';
-            
-            if (gainNode && (remainingSeconds <= 0 || remainingSeconds > FADE_DURATION)) {
-                gainNode.gain.cancelScheduledValues(audioContext.currentTime);
-                gainNode.gain.setValueAtTime(baseVolume, audioContext.currentTime);
-            }
+        // 菜单项点击效果
+        function addTapEffect(element) {
+            const addTap = () => element.classList.add('tapped');
+            const removeTap = () => element.classList.remove('tapped');
+
+            element.addEventListener('touchstart', addTap, { passive: true });
+            element.addEventListener('touchend', removeTap, { passive: true });
+            element.addEventListener('touchcancel', removeTap, { passive: true });
+            element.addEventListener('mousedown', addTap);
+            element.addEventListener('mouseup', removeTap);
+            element.addEventListener('mouseleave', removeTap);
         }
 
-        function handleVolumeMove(e) {
-            const rect = volumeSlider.getBoundingClientRect();
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            updateVolume((clientX - rect.left) / rect.width);
-        }
-
-        volumeSlider.addEventListener('mousedown', (e) => {
-            handleVolumeMove(e);
-            const move = (ev) => handleVolumeMove(ev);
-            const up = () => { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); };
-            document.addEventListener('mousemove', move);
-            document.addEventListener('mouseup', up);
-        });
-
-        volumeSlider.addEventListener('touchstart', (e) => {
-            handleVolumeMove(e);
-            const move = (ev) => handleVolumeMove(ev);
-            const end = () => { document.removeEventListener('touchmove', move); document.removeEventListener('touchend', end); };
-            document.addEventListener('touchmove', move);
-            document.addEventListener('touchend', end);
-        }, { passive: true });
-
-        updateVolume(baseVolume, false);
-
-        function showIOSMenu(items, onSelect) {
+        // iOS 菜单
+        function showIOSMenu(items, onSelect, isVolumeMenu = false) {
             iosMenuGroup.innerHTML = '';
-            items.forEach(item => {
-                const btn = document.createElement('button');
-                btn.className = 'ios-menu-item';
-                btn.textContent = item.label;
-                btn.onclick = () => { onSelect(item.value); hideIOSMenu(); };
-                iosMenuGroup.appendChild(btn);
-            });
+
+            if (isVolumeMenu) {
+                // 音量滑块菜单
+                const volumeContainer = document.createElement('div');
+                volumeContainer.className = 'ios-volume-container';
+                volumeContainer.innerHTML = `
+                    <div class="ios-volume-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M7 15H4q-.425 0-.712-.288T3 14v-4q0-.425.288-.712T4 9h3l3.3-3.3q.475-.475 1.088-.213t.612.938v11.15q0 .675-.612.938T10.3 18.3z"/></svg>
+                    </div>
+                    <div class="ios-volume-slider" id="iosVolumeSlider">
+                        <div class="ios-volume-track">
+                            <div class="ios-volume-fill" id="iosVolumeFill"></div>
+                        </div>
+                        <div class="ios-volume-thumb" id="iosVolumeThumb"></div>
+                    </div>
+                    <div class="ios-volume-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19 11.975q0-2.075-1.1-3.787t-2.95-2.563q-.375-.175-.55-.537t-.05-.738q.15-.4.538-.575t.787 0Q18.1 4.85 19.55 7.063T21 11.974t-1.45 4.913t-3.875 3.287q-.4.175-.788 0t-.537-.575q-.125-.375.05-.737t.55-.538q1.85-.85 2.95-2.562t1.1-3.788M7 15H4q-.425 0-.712-.288T3 14v-4q0-.425.288-.712T4 9h3l3.3-3.3q.475-.475 1.088-.213t.612.938v11.15q0 .675-.612.938T10.3 18.3zm9.5-3q0 1.05-.475 1.988t-1.25 1.537q-.25.15-.513.013T14 15.1V8.85q0-.3.263-.437t.512.012q.775.625 1.25 1.575t.475 2"/></svg>
+                    </div>
+                `;
+                iosMenuGroup.appendChild(volumeContainer);
+
+                // 初始化音量滑块
+                setTimeout(() => {
+                    const slider = document.getElementById('iosVolumeSlider');
+                    const fill = document.getElementById('iosVolumeFill');
+                    const thumb = document.getElementById('iosVolumeThumb');
+
+                    function updateVolumeUI(percent) {
+                        fill.style.width = (percent * 100) + '%';
+                        thumb.style.left = (percent * 100) + '%';
+                    }
+
+                    function handleVolumeChange(e) {
+                        const rect = slider.getBoundingClientRect();
+                        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                        const percent = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+
+                        baseVolume = percent;
+                        updateVolumeUI(percent);
+
+                        if (gainNode && (remainingSeconds <= 0 || remainingSeconds > FADE_DURATION)) {
+                            gainNode.gain.cancelScheduledValues(audioContext.currentTime);
+                            gainNode.gain.setValueAtTime(baseVolume, audioContext.currentTime);
+                        }
+                    }
+
+                    updateVolumeUI(baseVolume);
+
+                    slider.addEventListener('mousedown', (e) => {
+                        handleVolumeChange(e);
+                        const move = (ev) => handleVolumeChange(ev);
+                        const up = () => { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); };
+                        document.addEventListener('mousemove', move);
+                        document.addEventListener('mouseup', up);
+                    });
+
+                    slider.addEventListener('touchstart', (e) => {
+                        handleVolumeChange(e);
+                        const move = (ev) => handleVolumeChange(ev);
+                        const end = () => { document.removeEventListener('touchmove', move); document.removeEventListener('touchend', end); };
+                        document.addEventListener('touchmove', move);
+                        document.addEventListener('touchend', end);
+                    }, { passive: true });
+                }, 0);
+            } else {
+                // 常规菜单项
+                items.forEach(item => {
+                    const btn = document.createElement('button');
+                    btn.className = 'ios-menu-item';
+                    btn.textContent = item.label;
+                    addTapEffect(btn);
+                    btn.onclick = () => { onSelect(item.value); hideIOSMenu(); };
+                    iosMenuGroup.appendChild(btn);
+                });
+            }
+
             iosOverlay.classList.add('show');
             iosMenu.classList.add('show');
         }
@@ -688,6 +738,7 @@
             iosMenu.classList.remove('show');
         }
 
+        addTapEffect(iosCancel);
         iosCancel.onclick = iosOverlay.onclick = hideIOSMenu;
 
         songSelectorBtn.onclick = () => {
@@ -700,13 +751,16 @@
             showIOSMenu(items, startTimer);
         };
 
+        volumeBtn.onclick = () => {
+            showIOSMenu([], null, true);
+        };
+
         function startTimer(minutes) {
             if (timerInterval) clearInterval(timerInterval);
             remainingSeconds = minutes * 60;
             updateCountdownUI();
-            countdownEl.classList.add('visible');
-            countdownEl.classList.remove('ending');
-            timerBtn.classList.add('active');
+            countdownContainer.classList.add('visible');
+            countdownContainer.classList.remove('ending');
 
             timerInterval = setInterval(() => {
                 remainingSeconds--;
@@ -717,7 +771,7 @@
                     if (remainingSeconds <= FADE_DURATION && gainNode) {
                         const ratio = remainingSeconds / FADE_DURATION;
                         gainNode.gain.setValueAtTime(baseVolume * ratio, audioContext.currentTime);
-                        countdownEl.classList.add('ending');
+                        countdownContainer.classList.add('ending');
                     }
                     updateCountdownUI();
                 }
@@ -728,26 +782,18 @@
             if (timerInterval) clearInterval(timerInterval);
             timerInterval = null;
             remainingSeconds = 0;
-            countdownEl.classList.remove('visible');
-            timerBtn.classList.remove('active');
-            if (gainNode) gainNode.gain.setValueAtTime(baseVolume, audioContext.currentTime);
+            countdownContainer.classList.remove('visible', 'ending');
+            if (gainNode && audioContext) gainNode.gain.setValueAtTime(baseVolume, audioContext.currentTime);
         }
 
         function updateCountdownUI() {
-            const m = Math.floor(remainingSeconds / 60), s = remainingSeconds % 60;
-            countdownTime.textContent = `${m}:${s.toString().padStart(2, '0')}`;
+            const m = Math.floor(remainingSeconds / 60);
+            countdownTime.textContent = `${m} min`;
         }
 
-        cancelBtn.onclick = clearTimer;
-
-        volumeBtn.querySelector('.trigger').onclick = (e) => {
-            e.stopPropagation();
-            volumeBtn.classList.toggle('expanded');
-        };
-
-        document.addEventListener('click', (e) => {
-            if (!volumeBtn.contains(e.target)) volumeBtn.classList.remove('expanded');
-        });
+        // 点击倒计时取消定时器
+        countdownContainer.onclick = clearTimer;
     </script>
 </body>
 </html>
+
