@@ -12,7 +12,7 @@
             --glass: rgba(255, 255, 255, 0.08);
             --glass-border: rgba(255, 255, 255, 0.12);
             --accent-blue: #3b82f6;
-            --glass-heavy: rgba(255, 255, 255, 0.15);
+            --ios-bg: rgba(25, 25, 25, 0.85);
         }
 
         * {
@@ -69,14 +69,13 @@
             max-width: 500px;
         }
 
-        /* 歌曲名称按钮 & 下拉菜单 */
+        /* 歌曲名称按钮 - 纯文字 */
         .now-playing {
             text-align: center;
             margin-bottom: 50px;
             opacity: 0;
             transform: translateY(20px);
             animation: fadeUp 0.8s ease 0.2s forwards;
-            position: relative;
         }
 
         .now-playing .label {
@@ -88,87 +87,20 @@
         }
 
         .song-selector-btn {
-            background: var(--glass);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
-            padding: 8px 24px;
-            border-radius: 30px;
+            background: none;
+            border: none;
             color: var(--text-primary);
             font-family: inherit;
-            font-size: 2.5rem;
+            font-size: 2.8rem;
             font-weight: 300;
             letter-spacing: 2px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: opacity 0.3s ease;
             text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-            display: flex;
-            align-items: center;
-            gap: 12px;
         }
 
         .song-selector-btn:hover {
-            background: var(--glass-heavy);
-        }
-
-        .song-selector-btn::after {
-            content: '';
-            width: 0;
-            height: 0;
-            border-left: 6px solid transparent;
-            border-right: 6px solid transparent;
-            border-top: 6px solid var(--text-secondary);
-            transition: transform 0.3s ease;
-        }
-
-        .song-selector-btn.open::after {
-            transform: rotate(180deg);
-        }
-
-        .dropdown-menu {
-            position: absolute;
-            top: 110%;
-            left: 50%;
-            transform: translateX(-50%) translateY(10px);
-            background: rgba(20, 20, 20, 0.8);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 12px;
-            width: 200px;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 100;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .dropdown-menu.show {
-            opacity: 1;
-            visibility: visible;
-            transform: translateX(-50%) translateY(0);
-        }
-
-        .dropdown-item {
-            padding: 12px 20px;
-            color: var(--text-secondary);
-            cursor: pointer;
-            border-radius: 12px;
-            transition: all 0.2s ease;
-            font-size: 1.1rem;
-            text-align: center;
-            letter-spacing: 1px;
-        }
-
-        .dropdown-item:hover {
-            background: var(--glass);
-            color: var(--text-primary);
-        }
-
-        .dropdown-item.active {
-            color: var(--text-primary);
-            background: var(--glass-heavy);
+            opacity: 0.8;
         }
 
         @keyframes fadeUp {
@@ -205,12 +137,8 @@
             transform: scale(1.05);
         }
 
-        .play-btn:active {
-            transform: scale(0.95);
-        }
-
         .play-btn.playing {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             color: var(--accent-blue);
@@ -219,7 +147,6 @@
         .play-btn svg {
             width: 48px;
             height: 48px;
-            transition: color 0.3s ease;
         }
 
         .play-btn.playing::before {
@@ -240,12 +167,12 @@
             to { opacity: 1; transform: scale(1); }
         }
 
-        /* 倒计时显示 - 播放按钮下方居中 */
+        /* 倒计时显示 */
         .countdown {
             background: rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            padding: 8px 12px 8px 16px; /* 重新计算边距：左侧16px，右侧12px（因为有按钮） */
+            padding: 8px 12px 8px 16px;
             border-radius: 24px;
             display: flex;
             align-items: center;
@@ -274,7 +201,6 @@
         .countdown .time {
             font-weight: 500;
             letter-spacing: 0.5px;
-            line-height: 1;
         }
 
         .countdown .cancel-btn {
@@ -288,10 +214,6 @@
             cursor: pointer;
             transition: all 0.2s ease;
             margin-left: 4px;
-        }
-
-        .countdown .cancel-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
         }
 
         /* 底部控制按钮 */
@@ -325,12 +247,7 @@
             border: none;
         }
 
-        .control-btn:hover .trigger,
-        .control-btn.expanded .trigger {
-            color: var(--text-primary);
-        }
-
-        .control-btn.active .trigger {
+        .control-btn:hover .trigger, .control-btn.active .trigger {
             color: var(--text-primary);
         }
 
@@ -359,17 +276,11 @@
             opacity: 1;
         }
 
-        /* 音量 - 右下角 */
-        .volume-btn {
-            right: 20px;
-        }
+        .volume-btn { right: 20px; }
+        .volume-btn.expanded .content { width: 140px; padding-right: 16px; }
+        .timer-btn { left: 20px; }
 
-        .volume-btn.expanded .content {
-            width: 140px;
-            padding-right: 16px;
-        }
-
-        /* 自定义音量条 */
+        /* 音量滑动条 */
         .volume-slider-container {
             width: 120px;
             height: 30px;
@@ -405,70 +316,95 @@
             left: 80%;
             transform: translate(-50%, -50%);
             box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-            transition: transform 0.2s ease;
         }
 
-        .volume-slider-container:hover .volume-thumb {
-            transform: translate(-50%, -50%) scale(1.2);
+        /* iOS 风格 Action Sheet */
+        .ios-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
         }
 
-        /* 定时器 - 左下角 */
-        .timer-btn {
-            left: 20px;
+        .ios-overlay.show {
+            opacity: 1;
+            visibility: visible;
         }
 
-        .timer-btn.expanded .content {
-            width: 160px;
-            padding-right: 12px;
+        .ios-menu {
+            position: fixed;
+            bottom: 20px;
+            left: 10px;
+            right: 10px;
+            max-width: 400px;
+            margin: 0 auto;
+            z-index: 1001;
+            transform: translateY(110%);
+            transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
-        .timer-options {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding-left: 4px;
+        .ios-menu.show {
+            transform: translateY(0);
         }
 
-        .timer-opt {
-            padding: 6px 12px;
-            font-size: 0.75rem;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            color: var(--text-secondary);
-            border-radius: 20px; /* 最大圆角 */
-            white-space: nowrap;
-            transition: all 0.2s ease;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid transparent;
+        .ios-menu-group {
+            background: var(--ios-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 14px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .ios-menu-item {
+            width: 100%;
+            padding: 16px;
+            background: none;
+            border: none;
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
+            color: var(--accent-blue);
+            font-size: 1.1rem;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
             cursor: pointer;
-            line-height: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            transition: background 0.2s;
+            text-align: center;
         }
 
-        .timer-opt:hover {
-            background: rgba(255, 255, 255, 0.15);
-            color: var(--text-primary);
+        .ios-menu-item:last-child {
+            border-bottom: none;
         }
 
-        .timer-opt.active {
-            background: #fff;
-            color: #000;
+        .ios-menu-item:active {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .ios-menu-item.active {
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .ios-cancel {
+            background: var(--ios-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 14px;
+            width: 100%;
+            padding: 16px;
+            border: none;
+            color: var(--accent-blue);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
         }
 
         @media (max-width: 480px) {
-            .song-selector-btn {
-                font-size: 1.8rem;
-                padding: 6px 20px;
-            }
-            .play-btn {
-                width: 90px;
-                height: 90px;
-            }
-            .play-btn svg {
-                width: 40px;
-                height: 40px;
-            }
+            .song-selector-btn { font-size: 2.2rem; }
         }
     </style>
 </head>
@@ -480,16 +416,12 @@
         <div class="now-playing">
             <div class="label">Now Playing</div>
             <button class="song-selector-btn" id="songSelectorBtn">Ocean</button>
-            <div class="dropdown-menu" id="dropdownMenu">
-                <!-- 动态生成 -->
-            </div>
         </div>
 
         <button class="play-btn" id="playBtn">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M6 10a7 7 0 1 1 13 3.6a10 10 0 0 1-2 2a8 8 0 0 0-2 3A4.5 4.5 0 0 1 8.2 20"/><path d="M10 10a3 3 0 1 1 5 2.2"/></g></svg>
         </button>
 
-        <!-- 倒计时 -->
         <div class="countdown" id="countdown">
             <span class="time">00:00</span>
             <div class="cancel-btn">
@@ -498,21 +430,14 @@
         </div>
     </div>
 
-    <!-- 定时器 - 左下角 -->
+    <!-- 定时器触发 -->
     <div class="control-btn timer-btn" id="timerBtn">
         <button class="trigger">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M10 3q-.425 0-.712-.288T9 2t.288-.712T10 1h4q.425 0 .713.288T15 2t-.288.713T14 3zm2 11q.425 0 .713-.288T13 13V9q0-.425-.288-.712T12 8t-.712.288T11 9v4q0 .425.288.713T12 14m0 8q-1.85 0-3.488-.712T5.65 19.35t-1.937-2.863T3 13t.713-3.488T5.65 6.65t2.863-1.937T12 4q1.55 0 2.975.5t2.675 1.45l.7-.7q.275-.275.7-.275t.7.275t.275.7t-.275.7l-.7.7Q20 8.6 20.5 10.025T21 13q0 1.85-.713 3.488T18.35 19.35t-2.863 1.938T12 22m0-2q2.9 0 4.95-2.05T19 13t-2.05-4.95T12 6T7.05 8.05T5 13t2.05 4.95T12 20m0-7"/></svg>
         </button>
-        <div class="content">
-            <div class="timer-options">
-                <button class="timer-opt" data-time="15">15m</button>
-                <button class="timer-opt" data-time="30">30m</button>
-                <button class="timer-opt" data-time="60">1h</button>
-            </div>
-        </div>
     </div>
 
-    <!-- 音量 - 右下角 -->
+    <!-- 音量调节 -->
     <div class="control-btn volume-btn" id="volumeBtn">
         <button class="trigger">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19 11.975q0-2.075-1.1-3.787t-2.95-2.563q-.375-.175-.55-.537t-.05-.738q.15-.4.538-.575t.787 0Q18.1 4.85 19.55 7.063T21 11.974t-1.45 4.913t-3.875 3.287q-.4.175-.788 0t-.537-.575q-.125-.375.05-.737t.55-.538q1.85-.85 2.95-2.562t1.1-3.788M7 15H4q-.425 0-.712-.288T3 14v-4q0-.425.288-.712T4 9h3l3.3-3.3q.475-.475 1.088-.213t.612.938v11.15q0 .675-.612.938T10.3 18.3zm9.5-3q0 1.05-.475 1.988t-1.25 1.537q-.25.15-.513.013T14 15.1V8.85q0-.3.263-.437t.512.012q.775.625 1.25 1.575t.475 2"/></svg>
@@ -527,6 +452,15 @@
         </div>
     </div>
 
+    <!-- iOS 风格菜单 -->
+    <div class="ios-overlay" id="iosOverlay"></div>
+    <div class="ios-menu" id="iosMenu">
+        <div class="ios-menu-group" id="iosMenuGroup">
+            <!-- 动态内容 -->
+        </div>
+        <button class="ios-cancel" id="iosCancel">取消</button>
+    </div>
+
     <script>
         const musicData = [
             { name: 'Ocean', file: 'Ocean.m4a', img: 'Ocean.jpg' },
@@ -537,10 +471,15 @@
             { name: 'White Noise', file: 'WhiteNoise.m4a', img: 'WhiteNoise.jpg' }
         ];
 
+        const timerOptions = [
+            { label: '15 分钟', value: 15 },
+            { label: '30 分钟', value: 30 },
+            { label: '1 小时', value: 60 }
+        ];
+
         const bgContainer = document.getElementById('bgContainer');
         const playBtn = document.getElementById('playBtn');
         const songSelectorBtn = document.getElementById('songSelectorBtn');
-        const dropdownMenu = document.getElementById('dropdownMenu');
         const volumeSlider = document.getElementById('volumeSlider');
         const volumeFill = document.getElementById('volumeFill');
         const volumeThumb = document.getElementById('volumeThumb');
@@ -549,8 +488,11 @@
         const countdownEl = document.getElementById('countdown');
         const countdownTime = countdownEl.querySelector('.time');
         const cancelBtn = countdownEl.querySelector('.cancel-btn');
+        const iosOverlay = document.getElementById('iosOverlay');
+        const iosMenu = document.getElementById('iosMenu');
+        const iosMenuGroup = document.getElementById('iosMenuGroup');
+        const iosCancel = document.getElementById('iosCancel');
 
-        // Web Audio API
         let audioContext = null;
         let gainNode = null;
         let currentSource = null;
@@ -561,28 +503,16 @@
         let isLoading = false;
         let baseVolume = 0.8;
 
-        // 定时器
         let timerInterval = null;
         let remainingSeconds = 0;
         const FADE_DURATION = 10;
 
-        // 初始化背景和下拉菜单
+        // 初始化背景
         musicData.forEach((item, index) => {
             const layer = document.createElement('div');
-            layer.className = 'bg-layer';
+            layer.className = 'bg-layer' + (index === 0 ? ' active' : '');
             layer.style.backgroundImage = `url('img/${item.img}')`;
-            if (index === 0) layer.classList.add('active');
             bgContainer.appendChild(layer);
-
-            const dropItem = document.createElement('div');
-            dropItem.className = 'dropdown-item' + (index === 0 ? ' active' : '');
-            dropItem.textContent = item.name;
-            dropItem.onclick = (e) => {
-                e.stopPropagation();
-                selectMusic(index);
-                closeDropdown();
-            };
-            dropdownMenu.appendChild(dropItem);
         });
 
         function initAudioContext() {
@@ -592,22 +522,18 @@
                 gainNode.gain.value = baseVolume;
                 gainNode.connect(audioContext.destination);
             }
-            if (audioContext.state === 'suspended') {
-                audioContext.resume();
-            }
+            if (audioContext.state === 'suspended') audioContext.resume();
         }
 
         async function loadAudioBuffer(url) {
             if (audioBufferCache[url]) return audioBufferCache[url];
             const response = await fetch(url);
             const arrayBuffer = await response.arrayBuffer();
-            const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-            audioBufferCache[url] = audioBuffer;
-            return audioBuffer;
+            return audioBufferCache[url] = await audioContext.decodeAudioData(arrayBuffer);
         }
 
         function playWithWebAudio(buffer) {
-            stopCurrentSource();
+            if (currentSource) { try { currentSource.stop(); } catch(e){} currentSource.disconnect(); }
             const source = audioContext.createBufferSource();
             source.buffer = buffer;
             source.loop = true;
@@ -616,90 +542,55 @@
             currentSource = source;
         }
 
-        function stopCurrentSource() {
-            if (currentSource) {
-                try { currentSource.stop(); } catch (e) {}
-                currentSource.disconnect();
-                currentSource = null;
-            }
-        }
-
         async function selectMusic(index) {
             if (currentIndex === index || isLoading) return;
             initAudioContext();
-
             const bgLayers = bgContainer.querySelectorAll('.bg-layer');
-            const dropItems = dropdownMenu.querySelectorAll('.dropdown-item');
-
             bgLayers[currentIndex].classList.remove('active');
-            dropItems[currentIndex].classList.remove('active');
-
             bgLayers[index].classList.add('active');
-            dropItems[index].classList.add('active');
-
             currentIndex = index;
             songSelectorBtn.textContent = musicData[index].name;
-
             if (isPlaying) {
                 isLoading = true;
-                songSelectorBtn.style.opacity = '0.6';
+                songSelectorBtn.style.opacity = '0.5';
                 try {
                     const buffer = await loadAudioBuffer(`music/${musicData[index].file}`);
                     playWithWebAudio(buffer);
-                } catch (e) {
-                    console.error('加载失败:', e);
-                } finally {
-                    isLoading = false;
-                    songSelectorBtn.style.opacity = '1';
-                }
+                } finally { isLoading = false; songSelectorBtn.style.opacity = '1'; }
             }
         }
 
         async function togglePlay() {
             initAudioContext();
             if (isPlaying) {
-                stopCurrentSource();
+                if (currentSource) { try { currentSource.stop(); } catch(e){} currentSource.disconnect(); currentSource = null; }
                 playBtn.classList.remove('playing');
                 isPlaying = false;
             } else {
                 isLoading = true;
-                songSelectorBtn.style.opacity = '0.6';
+                songSelectorBtn.style.opacity = '0.5';
                 try {
                     const buffer = await loadAudioBuffer(`music/${musicData[currentIndex].file}`);
-                    if (gainNode) gainNode.gain.value = baseVolume;
+                    updateVolume(baseVolume); // 确保播放时音量正确
                     playWithWebAudio(buffer);
                     playBtn.classList.add('playing');
                     isPlaying = true;
-                } catch (e) {
-                    console.error('加载失败:', e);
-                } finally {
-                    isLoading = false;
-                    songSelectorBtn.style.opacity = '1';
-                }
+                } finally { isLoading = false; songSelectorBtn.style.opacity = '1'; }
             }
         }
 
         playBtn.onclick = togglePlay;
 
-        // 下拉菜单逻辑
-        songSelectorBtn.onclick = (e) => {
-            e.stopPropagation();
-            songSelectorBtn.classList.toggle('open');
-            dropdownMenu.classList.toggle('show');
-        };
-
-        function closeDropdown() {
-            songSelectorBtn.classList.remove('open');
-            dropdownMenu.classList.remove('show');
-        }
-
-        // 音量滑动条逻辑 (支持移动端和桌面端)
-        function updateVolumeUI(percent) {
+        // 音量调节逻辑 - 修复 Bug
+        function updateVolume(percent) {
             percent = Math.max(0, Math.min(1, percent));
             baseVolume = percent;
             volumeFill.style.width = (percent * 100) + '%';
             volumeThumb.style.left = (percent * 100) + '%';
-            if (gainNode && remainingSeconds <= 0) {
+            
+            // 核心修复：即使在倒计时渐弱期间，手动调节也应更新 baseVolume
+            // 如果不在最后渐弱阶段，直接更新 gainNode
+            if (gainNode && (remainingSeconds <= 0 || remainingSeconds > FADE_DURATION)) {
                 gainNode.gain.value = baseVolume;
             }
         }
@@ -707,113 +598,107 @@
         function handleVolumeMove(e) {
             const rect = volumeSlider.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const percent = (clientX - rect.left) / rect.width;
-            updateVolumeUI(percent);
+            updateVolume((clientX - rect.left) / rect.width);
         }
 
         volumeSlider.addEventListener('mousedown', (e) => {
             handleVolumeMove(e);
-            const onMouseMove = (ev) => handleVolumeMove(ev);
-            const onMouseUp = () => {
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('mouseup', onMouseUp);
-            };
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
+            const move = (ev) => handleVolumeMove(ev);
+            const up = () => { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); };
+            document.addEventListener('mousemove', move);
+            document.addEventListener('mouseup', up);
         });
 
         volumeSlider.addEventListener('touchstart', (e) => {
             handleVolumeMove(e);
-            const onTouchMove = (ev) => handleVolumeMove(ev);
-            const onTouchEnd = () => {
-                document.removeEventListener('touchmove', onTouchMove);
-                document.removeEventListener('touchend', onTouchEnd);
-            };
-            document.addEventListener('touchmove', onTouchMove);
-            document.addEventListener('touchend', onTouchEnd);
+            const move = (ev) => handleVolumeMove(ev);
+            const end = () => { document.removeEventListener('touchmove', move); document.removeEventListener('touchend', end); };
+            document.addEventListener('touchmove', move);
+            document.addEventListener('touchend', end);
         }, { passive: true });
 
-        // 初始化音量UI
-        updateVolumeUI(baseVolume);
+        updateVolume(baseVolume);
 
-        // 控制按钮展开逻辑
-        function toggleControlBtn(btn, otherBtn) {
-            btn.classList.toggle('expanded');
-            otherBtn.classList.remove('expanded');
+        // iOS 菜单逻辑
+        function showIOSMenu(items, onSelect) {
+            iosMenuGroup.innerHTML = '';
+            items.forEach(item => {
+                const btn = document.createElement('button');
+                btn.className = 'ios-menu-item' + (item.active ? ' active' : '');
+                btn.textContent = item.label;
+                btn.onclick = () => { onSelect(item.value); hideIOSMenu(); };
+                iosMenuGroup.appendChild(btn);
+            });
+            iosOverlay.classList.add('show');
+            iosMenu.classList.add('show');
         }
 
-        volumeBtn.querySelector('.trigger').onclick = (e) => {
-            e.stopPropagation();
-            toggleControlBtn(volumeBtn, timerBtn);
+        function hideIOSMenu() {
+            iosOverlay.classList.remove('show');
+            iosMenu.classList.remove('show');
+        }
+
+        iosCancel.onclick = iosOverlay.onclick = hideIOSMenu;
+
+        songSelectorBtn.onclick = () => {
+            const items = musicData.map((m, i) => ({ label: m.name, value: i, active: i === currentIndex }));
+            showIOSMenu(items, selectMusic);
         };
 
-        timerBtn.querySelector('.trigger').onclick = (e) => {
-            e.stopPropagation();
-            toggleControlBtn(timerBtn, volumeBtn);
+        timerBtn.onclick = () => {
+            const items = timerOptions.map(o => ({ label: o.label, value: o.value, active: false }));
+            showIOSMenu(items, startTimer);
         };
 
         // 定时器逻辑
-        document.querySelectorAll('.timer-opt').forEach(btn => {
-            btn.onclick = (e) => {
-                e.stopPropagation();
-                const minutes = parseInt(btn.dataset.time);
-                document.querySelectorAll('.timer-opt').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                timerBtn.classList.add('active');
-                startTimer(minutes);
-                setTimeout(() => timerBtn.classList.remove('expanded'), 250);
-            };
-        });
-
         function startTimer(minutes) {
-            clearTimer(false);
+            if (timerInterval) clearInterval(timerInterval);
             remainingSeconds = minutes * 60;
-            updateCountdown();
+            updateCountdownUI();
             countdownEl.classList.add('visible');
             countdownEl.classList.remove('ending');
+            timerBtn.classList.add('active');
 
             timerInterval = setInterval(() => {
                 remainingSeconds--;
                 if (remainingSeconds <= 0) {
                     if (isPlaying) togglePlay();
-                    clearTimer(true);
+                    clearTimer();
                 } else {
                     if (remainingSeconds <= FADE_DURATION && gainNode) {
-                        const fadeRatio = remainingSeconds / FADE_DURATION;
-                        gainNode.gain.value = baseVolume * fadeRatio;
+                        const ratio = remainingSeconds / FADE_DURATION;
+                        gainNode.gain.value = baseVolume * ratio;
                         countdownEl.classList.add('ending');
                     }
-                    updateCountdown();
+                    updateCountdownUI();
                 }
             }, 1000);
         }
 
-        function clearTimer(resetUI = true) {
+        function clearTimer() {
             if (timerInterval) clearInterval(timerInterval);
             timerInterval = null;
             remainingSeconds = 0;
-            if (resetUI) {
-                countdownEl.classList.remove('visible');
-                countdownEl.classList.remove('ending');
-                timerBtn.classList.remove('active');
-                document.querySelectorAll('.timer-opt').forEach(b => b.classList.remove('active'));
-                if (gainNode) gainNode.gain.value = baseVolume;
-            }
+            countdownEl.classList.remove('visible');
+            timerBtn.classList.remove('active');
+            if (gainNode) gainNode.gain.value = baseVolume;
         }
 
-        function updateCountdown() {
-            const mins = Math.floor(remainingSeconds / 60);
-            const secs = remainingSeconds % 60;
-            countdownTime.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+        function updateCountdownUI() {
+            const m = Math.floor(remainingSeconds / 60), s = remainingSeconds % 60;
+            countdownTime.textContent = `${m}:${s.toString().padStart(2, '0')}`;
         }
 
-        cancelBtn.onclick = () => clearTimer(true);
+        cancelBtn.onclick = clearTimer;
 
-        // 全局点击关闭
+        // 音量按钮展开
+        volumeBtn.querySelector('.trigger').onclick = (e) => {
+            e.stopPropagation();
+            volumeBtn.classList.toggle('expanded');
+        };
+
         document.addEventListener('click', (e) => {
             if (!volumeBtn.contains(e.target)) volumeBtn.classList.remove('expanded');
-            if (!timerBtn.contains(e.target)) timerBtn.classList.remove('expanded');
-            if (!songSelectorBtn.contains(e.target)) closeDropdown();
         });
     </script>
 </body>
