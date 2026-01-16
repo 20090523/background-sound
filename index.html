@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>背景音</title>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
@@ -12,12 +12,14 @@
             --glass: rgba(255, 255, 255, 0.08);
             --glass-border: rgba(255, 255, 255, 0.12);
             --accent-blue: #3b82f6;
+            --glass-heavy: rgba(255, 255, 255, 0.15);
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -67,12 +69,14 @@
             max-width: 500px;
         }
 
+        /* 歌曲名称按钮 & 下拉菜单 */
         .now-playing {
             text-align: center;
             margin-bottom: 50px;
             opacity: 0;
             transform: translateY(20px);
             animation: fadeUp 0.8s ease 0.2s forwards;
+            position: relative;
         }
 
         .now-playing .label {
@@ -83,11 +87,88 @@
             margin-bottom: 12px;
         }
 
-        .now-playing .title {
+        .song-selector-btn {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            padding: 8px 24px;
+            border-radius: 30px;
+            color: var(--text-primary);
+            font-family: inherit;
             font-size: 2.5rem;
             font-weight: 300;
             letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
             text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .song-selector-btn:hover {
+            background: var(--glass-heavy);
+        }
+
+        .song-selector-btn::after {
+            content: '';
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid var(--text-secondary);
+            transition: transform 0.3s ease;
+        }
+
+        .song-selector-btn.open::after {
+            transform: rotate(180deg);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 110%;
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
+            background: rgba(20, 20, 20, 0.8);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 12px;
+            width: 200px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .dropdown-item {
+            padding: 12px 20px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            font-size: 1.1rem;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        .dropdown-item:hover {
+            background: var(--glass);
+            color: var(--text-primary);
+        }
+
+        .dropdown-item.active {
+            color: var(--text-primary);
+            background: var(--glass-heavy);
         }
 
         @keyframes fadeUp {
@@ -111,7 +192,7 @@
             align-items: center;
             justify-content: center;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            margin-bottom: 60px;
+            margin-bottom: 30px;
             opacity: 0;
             transform: scale(0.8);
             animation: scaleIn 0.6s ease 0.4s forwards;
@@ -159,68 +240,58 @@
             to { opacity: 1; transform: scale(1); }
         }
 
-        /* 选择器 */
-        .selector {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            justify-content: center;
-            max-width: 320px;
-            opacity: 0;
-            animation: fadeUp 0.8s ease 0.6s forwards;
-        }
-
-        .selector-item {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: var(--glass);
+        /* 倒计时显示 - 播放按钮下方居中 */
+        .countdown {
+            background: rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            border: 1px solid transparent;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            padding: 8px 12px 8px 16px; /* 重新计算边距：左侧16px，右侧12px（因为有按钮） */
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 0.9rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(10px);
+            transition: all 0.4s ease;
+            margin-bottom: 30px;
+        }
+
+        .countdown.visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .countdown.ending {
+            background: rgba(220, 38, 38, 0.4);
+            border-color: rgba(220, 38, 38, 0.2);
+        }
+
+        .countdown .time {
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            line-height: 1;
+        }
+
+        .countdown .cancel-btn {
+            width: 24px;
+            height: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.7rem;
-            font-weight: 500;
-            letter-spacing: 0.5px;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-        }
-
-        .selector-item:hover {
-            background: rgba(255, 255, 255, 0.15);
-            color: var(--text-primary);
-        }
-
-        .selector-item.active {
-            border-color: var(--text-primary);
-            color: var(--text-primary);
-            background: rgba(255, 255, 255, 0.12);
-        }
-
-        .selector-item.loading {
-            pointer-events: none;
-        }
-
-        .selector-item.loading::after {
-            content: '';
-            width: 16px;
-            height: 16px;
-            border: 1.5px solid rgba(255, 255, 255, 0.2);
-            border-top-color: #fff;
             border-radius: 50%;
-            animation: spin 0.7s linear infinite;
+            background: rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-left: 4px;
         }
 
-        .selector-item.loading span {
-            display: none;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .countdown .cancel-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
         }
 
         /* 底部控制按钮 */
@@ -294,42 +365,51 @@
         }
 
         .volume-btn.expanded .content {
-            width: 100px;
+            width: 140px;
             padding-right: 16px;
         }
 
-        .vol-slider {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 90px;
-            height: 3px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 2px;
-            outline: none;
+        /* 自定义音量条 */
+        .volume-slider-container {
+            width: 120px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            position: relative;
             cursor: pointer;
+            touch-action: none;
         }
 
-        .vol-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 14px;
-            height: 14px;
+        .volume-track {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            position: relative;
+        }
+
+        .volume-fill {
+            height: 100%;
+            background: #fff;
+            border-radius: 2px;
+            width: 80%;
+        }
+
+        .volume-thumb {
+            width: 16px;
+            height: 16px;
             background: #fff;
             border-radius: 50%;
-            cursor: pointer;
+            position: absolute;
+            top: 50%;
+            left: 80%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
             transition: transform 0.2s ease;
         }
 
-        .vol-slider::-webkit-slider-thumb:hover {
-            transform: scale(1.15);
-        }
-
-        .vol-slider::-moz-range-thumb {
-            width: 14px;
-            height: 14px;
-            background: #fff;
-            border-radius: 50%;
-            border: none;
-            cursor: pointer;
+        .volume-slider-container:hover .volume-thumb {
+            transform: translate(-50%, -50%) scale(1.2);
         }
 
         /* 定时器 - 左下角 */
@@ -338,31 +418,36 @@
         }
 
         .timer-btn.expanded .content {
-            width: 150px;
+            width: 160px;
             padding-right: 12px;
         }
 
         .timer-options {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
+            padding-left: 4px;
         }
 
         .timer-opt {
-            padding: 6px 10px;
-            font-size: 0.72rem;
+            padding: 6px 12px;
+            font-size: 0.75rem;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             color: var(--text-secondary);
-            border-radius: 10px;
+            border-radius: 20px; /* 最大圆角 */
             white-space: nowrap;
             transition: all 0.2s ease;
-            background: none;
-            border: none;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid transparent;
             cursor: pointer;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .timer-opt:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.15);
             color: var(--text-primary);
         }
 
@@ -371,77 +456,18 @@
             color: #000;
         }
 
-        /* 倒计时显示 */
-        .countdown {
-            position: fixed;
-            top: 40px;
-            right: 40px;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            padding: 8px 16px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            font-size: 0.85rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            opacity: 0;
-            pointer-events: none;
-            transform: translateY(-10px);
-            transition: all 0.4s ease;
-            z-index: 100;
-        }
-
-        .countdown.visible {
-            opacity: 1;
-            pointer-events: auto;
-            transform: translateY(0);
-        }
-
-        .countdown.ending {
-            background: rgba(220, 38, 38, 0.4);
-            border-color: rgba(220, 38, 38, 0.2);
-        }
-
-        .countdown .time {
-            font-weight: 500;
-            letter-spacing: 0.5px;
-        }
-
-        .countdown .cancel-btn {
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .countdown .cancel-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
         @media (max-width: 480px) {
-            .now-playing .title {
-                font-size: 2rem;
+            .song-selector-btn {
+                font-size: 1.8rem;
+                padding: 6px 20px;
             }
             .play-btn {
-                width: 80px;
-                height: 80px;
+                width: 90px;
+                height: 90px;
             }
             .play-btn svg {
-                width: 36px;
-                height: 36px;
-            }
-            .countdown {
-                top: auto;
-                bottom: 100px;
-                right: 20px;
+                width: 40px;
+                height: 40px;
             }
         }
     </style>
@@ -453,21 +479,22 @@
     <div class="container">
         <div class="now-playing">
             <div class="label">Now Playing</div>
-            <div class="title" id="currentTitle">Ocean</div>
+            <button class="song-selector-btn" id="songSelectorBtn">Ocean</button>
+            <div class="dropdown-menu" id="dropdownMenu">
+                <!-- 动态生成 -->
+            </div>
         </div>
 
         <button class="play-btn" id="playBtn">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M6 10a7 7 0 1 1 13 3.6a10 10 0 0 1-2 2a8 8 0 0 0-2 3A4.5 4.5 0 0 1 8.2 20"/><path d="M10 10a3 3 0 1 1 5 2.2"/></g></svg>
         </button>
 
-        <div class="selector" id="selector"></div>
-    </div>
-
-    <!-- 倒计时 -->
-    <div class="countdown" id="countdown">
-        <span class="time">00:00</span>
-        <div class="cancel-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        <!-- 倒计时 -->
+        <div class="countdown" id="countdown">
+            <span class="time">00:00</span>
+            <div class="cancel-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </div>
         </div>
     </div>
 
@@ -491,25 +518,32 @@
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19 11.975q0-2.075-1.1-3.787t-2.95-2.563q-.375-.175-.55-.537t-.05-.738q.15-.4.538-.575t.787 0Q18.1 4.85 19.55 7.063T21 11.974t-1.45 4.913t-3.875 3.287q-.4.175-.788 0t-.537-.575q-.125-.375.05-.737t.55-.538q1.85-.85 2.95-2.562t1.1-3.788M7 15H4q-.425 0-.712-.288T3 14v-4q0-.425.288-.712T4 9h3l3.3-3.3q.475-.475 1.088-.213t.612.938v11.15q0 .675-.612.938T10.3 18.3zm9.5-3q0 1.05-.475 1.988t-1.25 1.537q-.25.15-.513.013T14 15.1V8.85q0-.3.263-.437t.512.012q.775.625 1.25 1.575t.475 2"/></svg>
         </button>
         <div class="content">
-            <input type="range" class="vol-slider" id="volSlider" min="0" max="100" value="80">
+            <div class="volume-slider-container" id="volumeSlider">
+                <div class="volume-track">
+                    <div class="volume-fill" id="volumeFill"></div>
+                    <div class="volume-thumb" id="volumeThumb"></div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
         const musicData = [
-            { name: 'Ocean', file: 'Ocean.m4a', img: 'Ocean.jpg', abbr: 'OCN' },
-            { name: 'Brown Noise', file: 'BrownNoise.m4a', img: 'BrownNoise.jpg', abbr: 'BRN' },
-            { name: 'Pink Noise', file: 'PinkNoise.m4a', img: 'PinkNoise.jpg', abbr: 'PNK' },
-            { name: 'Rain', file: 'Rain.m4a', img: 'Rain.jpg', abbr: 'RAN' },
-            { name: 'Stream', file: 'Stream.m4a', img: 'Stream.jpg', abbr: 'STM' },
-            { name: 'White Noise', file: 'WhiteNoise.m4a', img: 'WhiteNoise.jpg', abbr: 'WHT' }
+            { name: 'Ocean', file: 'Ocean.m4a', img: 'Ocean.jpg' },
+            { name: 'Brown Noise', file: 'BrownNoise.m4a', img: 'BrownNoise.jpg' },
+            { name: 'Pink Noise', file: 'PinkNoise.m4a', img: 'PinkNoise.jpg' },
+            { name: 'Rain', file: 'Rain.m4a', img: 'Rain.jpg' },
+            { name: 'Stream', file: 'Stream.m4a', img: 'Stream.jpg' },
+            { name: 'White Noise', file: 'WhiteNoise.m4a', img: 'WhiteNoise.jpg' }
         ];
 
         const bgContainer = document.getElementById('bgContainer');
-        const selector = document.getElementById('selector');
         const playBtn = document.getElementById('playBtn');
-        const currentTitle = document.getElementById('currentTitle');
-        const volSlider = document.getElementById('volSlider');
+        const songSelectorBtn = document.getElementById('songSelectorBtn');
+        const dropdownMenu = document.getElementById('dropdownMenu');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const volumeFill = document.getElementById('volumeFill');
+        const volumeThumb = document.getElementById('volumeThumb');
         const volumeBtn = document.getElementById('volumeBtn');
         const timerBtn = document.getElementById('timerBtn');
         const countdownEl = document.getElementById('countdown');
@@ -525,30 +559,30 @@
         let currentIndex = 0;
         let isPlaying = false;
         let isLoading = false;
-        let baseVolume = volSlider.value / 100;
+        let baseVolume = 0.8;
 
         // 定时器
         let timerInterval = null;
         let remainingSeconds = 0;
-        let selectedMinutes = 0;
-        const FADE_DURATION = 10; // 最后10秒渐弱
+        const FADE_DURATION = 10;
 
-        // 预创建背景图层
+        // 初始化背景和下拉菜单
         musicData.forEach((item, index) => {
             const layer = document.createElement('div');
             layer.className = 'bg-layer';
             layer.style.backgroundImage = `url('img/${item.img}')`;
             if (index === 0) layer.classList.add('active');
             bgContainer.appendChild(layer);
-        });
 
-        // 创建选择器
-        musicData.forEach((item, index) => {
-            const btn = document.createElement('button');
-            btn.className = 'selector-item' + (index === 0 ? ' active' : '');
-            btn.innerHTML = `<span>${item.abbr}</span>`;
-            btn.onclick = () => selectMusic(index);
-            selector.appendChild(btn);
+            const dropItem = document.createElement('div');
+            dropItem.className = 'dropdown-item' + (index === 0 ? ' active' : '');
+            dropItem.textContent = item.name;
+            dropItem.onclick = (e) => {
+                e.stopPropagation();
+                selectMusic(index);
+                closeDropdown();
+            };
+            dropdownMenu.appendChild(dropItem);
         });
 
         function initAudioContext() {
@@ -592,25 +626,23 @@
 
         async function selectMusic(index) {
             if (currentIndex === index || isLoading) return;
-
             initAudioContext();
 
-            const items = selector.querySelectorAll('.selector-item');
             const bgLayers = bgContainer.querySelectorAll('.bg-layer');
+            const dropItems = dropdownMenu.querySelectorAll('.dropdown-item');
 
-            items[currentIndex].classList.remove('active');
             bgLayers[currentIndex].classList.remove('active');
+            dropItems[currentIndex].classList.remove('active');
 
-            items[index].classList.add('active');
             bgLayers[index].classList.add('active');
+            dropItems[index].classList.add('active');
 
             currentIndex = index;
-            currentTitle.textContent = musicData[index].name;
+            songSelectorBtn.textContent = musicData[index].name;
 
             if (isPlaying) {
                 isLoading = true;
-                items[index].classList.add('loading');
-
+                songSelectorBtn.style.opacity = '0.6';
                 try {
                     const buffer = await loadAudioBuffer(`music/${musicData[index].file}`);
                     playWithWebAudio(buffer);
@@ -618,27 +650,22 @@
                     console.error('加载失败:', e);
                 } finally {
                     isLoading = false;
-                    items[index].classList.remove('loading');
+                    songSelectorBtn.style.opacity = '1';
                 }
             }
         }
 
         async function togglePlay() {
             initAudioContext();
-
-            const items = selector.querySelectorAll('.selector-item');
-
             if (isPlaying) {
                 stopCurrentSource();
                 playBtn.classList.remove('playing');
                 isPlaying = false;
             } else {
                 isLoading = true;
-                items[currentIndex].classList.add('loading');
-
+                songSelectorBtn.style.opacity = '0.6';
                 try {
                     const buffer = await loadAudioBuffer(`music/${musicData[currentIndex].file}`);
-                    // 恢复音量
                     if (gainNode) gainNode.gain.value = baseVolume;
                     playWithWebAudio(buffer);
                     playBtn.classList.add('playing');
@@ -647,14 +674,69 @@
                     console.error('加载失败:', e);
                 } finally {
                     isLoading = false;
-                    items[currentIndex].classList.remove('loading');
+                    songSelectorBtn.style.opacity = '1';
                 }
             }
         }
 
         playBtn.onclick = togglePlay;
 
-        // 控制按钮展开/收起
+        // 下拉菜单逻辑
+        songSelectorBtn.onclick = (e) => {
+            e.stopPropagation();
+            songSelectorBtn.classList.toggle('open');
+            dropdownMenu.classList.toggle('show');
+        };
+
+        function closeDropdown() {
+            songSelectorBtn.classList.remove('open');
+            dropdownMenu.classList.remove('show');
+        }
+
+        // 音量滑动条逻辑 (支持移动端和桌面端)
+        function updateVolumeUI(percent) {
+            percent = Math.max(0, Math.min(1, percent));
+            baseVolume = percent;
+            volumeFill.style.width = (percent * 100) + '%';
+            volumeThumb.style.left = (percent * 100) + '%';
+            if (gainNode && remainingSeconds <= 0) {
+                gainNode.gain.value = baseVolume;
+            }
+        }
+
+        function handleVolumeMove(e) {
+            const rect = volumeSlider.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const percent = (clientX - rect.left) / rect.width;
+            updateVolumeUI(percent);
+        }
+
+        volumeSlider.addEventListener('mousedown', (e) => {
+            handleVolumeMove(e);
+            const onMouseMove = (ev) => handleVolumeMove(ev);
+            const onMouseUp = () => {
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            };
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        });
+
+        volumeSlider.addEventListener('touchstart', (e) => {
+            handleVolumeMove(e);
+            const onTouchMove = (ev) => handleVolumeMove(ev);
+            const onTouchEnd = () => {
+                document.removeEventListener('touchmove', onTouchMove);
+                document.removeEventListener('touchend', onTouchEnd);
+            };
+            document.addEventListener('touchmove', onTouchMove);
+            document.addEventListener('touchend', onTouchEnd);
+        }, { passive: true });
+
+        // 初始化音量UI
+        updateVolumeUI(baseVolume);
+
+        // 控制按钮展开逻辑
         function toggleControlBtn(btn, otherBtn) {
             btn.classList.toggle('expanded');
             otherBtn.classList.remove('expanded');
@@ -670,33 +752,21 @@
             toggleControlBtn(timerBtn, volumeBtn);
         };
 
-        volSlider.oninput = (e) => {
-            baseVolume = e.target.value / 100;
-            if (gainNode && remainingSeconds <= 0) {
-                gainNode.gain.value = baseVolume;
-            }
-        };
-
-        // 定时器选项
+        // 定时器逻辑
         document.querySelectorAll('.timer-opt').forEach(btn => {
             btn.onclick = (e) => {
                 e.stopPropagation();
                 const minutes = parseInt(btn.dataset.time);
-
                 document.querySelectorAll('.timer-opt').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 timerBtn.classList.add('active');
                 startTimer(minutes);
-
-                setTimeout(() => {
-                    timerBtn.classList.remove('expanded');
-                }, 250);
+                setTimeout(() => timerBtn.classList.remove('expanded'), 250);
             };
         });
 
         function startTimer(minutes) {
             clearTimer(false);
-            selectedMinutes = minutes;
             remainingSeconds = minutes * 60;
             updateCountdown();
             countdownEl.classList.add('visible');
@@ -704,15 +774,10 @@
 
             timerInterval = setInterval(() => {
                 remainingSeconds--;
-
                 if (remainingSeconds <= 0) {
-                    // 停止播放
-                    if (isPlaying) {
-                        togglePlay();
-                    }
+                    if (isPlaying) togglePlay();
                     clearTimer(true);
                 } else {
-                    // 最后几秒渐弱
                     if (remainingSeconds <= FADE_DURATION && gainNode) {
                         const fadeRatio = remainingSeconds / FADE_DURATION;
                         gainNode.gain.value = baseVolume * fadeRatio;
@@ -724,23 +789,15 @@
         }
 
         function clearTimer(resetUI = true) {
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-            }
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = null;
             remainingSeconds = 0;
-            selectedMinutes = 0;
-
             if (resetUI) {
                 countdownEl.classList.remove('visible');
                 countdownEl.classList.remove('ending');
                 timerBtn.classList.remove('active');
                 document.querySelectorAll('.timer-opt').forEach(b => b.classList.remove('active'));
-
-                // 恢复音量
-                if (gainNode) {
-                    gainNode.gain.value = baseVolume;
-                }
+                if (gainNode) gainNode.gain.value = baseVolume;
             }
         }
 
@@ -750,19 +807,13 @@
             countdownTime.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
         }
 
-        // 取消定时器
-        cancelBtn.onclick = () => {
-            clearTimer(true);
-        };
+        cancelBtn.onclick = () => clearTimer(true);
 
-        // 点击其他区域关闭
+        // 全局点击关闭
         document.addEventListener('click', (e) => {
-            if (!volumeBtn.contains(e.target)) {
-                volumeBtn.classList.remove('expanded');
-            }
-            if (!timerBtn.contains(e.target)) {
-                timerBtn.classList.remove('expanded');
-            }
+            if (!volumeBtn.contains(e.target)) volumeBtn.classList.remove('expanded');
+            if (!timerBtn.contains(e.target)) timerBtn.classList.remove('expanded');
+            if (!songSelectorBtn.contains(e.target)) closeDropdown();
         });
     </script>
 </body>
