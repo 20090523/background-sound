@@ -145,12 +145,17 @@
             height: 48px;
         }
 
-        .play-btn.playing::before {
+        /* 波纹动画优化：停止播放时不消失，只是不再生成新波纹 */
+        .play-btn::before {
             content: '';
             position: absolute;
             inset: -4px;
             border-radius: 50%;
             border: 1px solid rgba(255, 255, 255, 0.3);
+            opacity: 0;
+        }
+
+        .play-btn.playing::before {
             animation: ripple 2s ease-out infinite;
         }
 
@@ -163,18 +168,16 @@
             to { opacity: 1; transform: scale(1); }
         }
 
-        /* 底部控制栏布局 */
+        /* 底部控制栏布局修复：恢复两侧布局 */
         .bottom-controls {
             position: fixed;
             bottom: 36px;
-            left: 0;
-            right: 0;
+            left: 20px;
+            right: 20px;
             display: flex;
-            justify-content: center;
+            justify-content: space-between; /* 关键：推向两侧 */
             align-items: center;
-            gap: 20px;
             z-index: 100;
-            padding: 0 20px;
         }
 
         .control-btn {
@@ -233,7 +236,16 @@
             padding-right: 16px;
         }
 
-        /* 倒计时胶囊 - 底部居中 */
+        /* 倒计时胶囊 - 底部中央 */
+        .countdown-container {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
+        }
+
         .countdown {
             background: rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(10px);
@@ -247,15 +259,14 @@
             font-size: 0.9rem;
             border: 1px solid rgba(255, 255, 255, 0.1);
             opacity: 0;
-            pointer-events: none;
             transform: translateY(10px);
             transition: all 0.4s ease;
             height: 40px;
+            pointer-events: auto;
         }
 
         .countdown.visible {
             opacity: 1;
-            pointer-events: auto;
             transform: translateY(0);
         }
 
@@ -317,10 +328,10 @@
             left: 80%;
             transform: translate(-50%, -50%);
             box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-            z-index: 10; /* 提高层级 */
+            z-index: 10;
         }
 
-        /* iOS 风格 Action Sheet - 局部模糊 */
+        /* iOS 风格 Action Sheet - 修复隐藏 Bug */
         .ios-overlay {
             position: fixed;
             inset: 0;
@@ -344,7 +355,7 @@
             max-width: 400px;
             margin: 0 auto;
             z-index: 1001;
-            transform: translateY(110%);
+            transform: translateY(150%); /* 增加位移确保完全隐藏 */
             transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
@@ -400,7 +411,6 @@
 
         @media (max-width: 480px) {
             .song-selector-btn { font-size: 2.2rem; }
-            .bottom-controls { gap: 10px; }
         }
     </style>
 </head>
@@ -428,11 +438,13 @@
             </button>
         </div>
 
-        <!-- 倒计时胶囊 -->
-        <div class="countdown" id="countdown">
-            <span class="time">00:00</span>
-            <div class="cancel-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        <!-- 倒计时胶囊 - 独立容器居中 -->
+        <div class="countdown-container">
+            <div class="countdown" id="countdown">
+                <span class="time">00:00</span>
+                <div class="cancel-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </div>
             </div>
         </div>
 
@@ -496,7 +508,6 @@
         let currentSource = null;
         const audioBufferCache = {};
 
-        // 从本地存储恢复状态
         let currentIndex = parseInt(localStorage.getItem('bg_currentIndex')) || 0;
         let baseVolume = parseFloat(localStorage.getItem('bg_baseVolume')) || 0.8;
         let isPlaying = false;
@@ -505,7 +516,7 @@
         let timerInterval = null;
         let remainingSeconds = 0;
         const FADE_DURATION = 10;
-        const CROSSFADE_TIME = 0.8; // 渐变时间
+        const CROSSFADE_TIME = 1.0; // 增加渐变时间
 
         // 初始化背景
         musicData.forEach((item, index) => {
@@ -520,7 +531,7 @@
             if (!audioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 gainNode = audioContext.createGain();
-                gainNode.gain.value = 0; // 初始为0，用于淡入
+                gainNode.gain.value = 0;
                 gainNode.connect(audioContext.destination);
             }
             if (audioContext.state === 'suspended') audioContext.resume();
@@ -533,33 +544,13 @@
             return audioBufferCache[url] = await audioContext.decodeAudioData(arrayBuffer);
         }
 
-        function playWithWebAudio(buffer, fade = true) {
-            const newSource = audioContext.createBufferSource();
-            newSource.buffer = buffer;
-            newSource.loop = true;
-            newSource.connect(gainNode);
-            
-            if (fade) {
-                // 渐入效果
-                const now = audioContext.currentTime;
-                gainNode.gain.cancelScheduledValues(now);
-                gainNode.gain.setValueAtTime(gainNode.gain.value, now);
-                gainNode.gain.linearRampToValueAtTime(baseVolume, now + CROSSFADE_TIME);
-            } else {
-                gainNode.gain.value = baseVolume;
-            }
-
-            newSource.start(0);
-            if (currentSource) {
-                try { currentSource.stop(audioContext.currentTime + CROSSFADE_TIME); } catch(e){}
-            }
-            currentSource = newSource;
-        }
-
-        async function selectMusic(index) {
+        // 顺序淡入淡出逻辑
+        async function switchMusic(index) {
             if (currentIndex === index || isLoading) return;
             initAudioContext();
-            
+            isLoading = true;
+            songSelectorBtn.style.opacity = '0.5';
+
             const bgLayers = bgContainer.querySelectorAll('.bg-layer');
             bgLayers[currentIndex].classList.remove('active');
             bgLayers[index].classList.add('active');
@@ -569,12 +560,32 @@
             songSelectorBtn.textContent = musicData[index].name;
 
             if (isPlaying) {
-                isLoading = true;
-                songSelectorBtn.style.opacity = '0.5';
-                try {
-                    const buffer = await loadAudioBuffer(`music/${musicData[index].file}`);
-                    playWithWebAudio(buffer, true);
-                } finally { isLoading = false; songSelectorBtn.style.opacity = '1'; }
+                // 1. 先淡出当前音乐
+                const now = audioContext.currentTime;
+                gainNode.gain.cancelScheduledValues(now);
+                gainNode.gain.setValueAtTime(gainNode.gain.value, now);
+                gainNode.gain.linearRampToValueAtTime(0, now + CROSSFADE_TIME);
+
+                // 2. 等待淡出完成后，加载并淡入新音乐
+                setTimeout(async () => {
+                    try {
+                        const buffer = await loadAudioBuffer(`music/${musicData[index].file}`);
+                        if (currentSource) { currentSource.stop(); currentSource.disconnect(); }
+                        
+                        const newSource = audioContext.createBufferSource();
+                        newSource.buffer = buffer;
+                        newSource.loop = true;
+                        newSource.connect(gainNode);
+                        newSource.start(0);
+                        currentSource = newSource;
+
+                        const fadeInNow = audioContext.currentTime;
+                        gainNode.gain.linearRampToValueAtTime(baseVolume, fadeInNow + CROSSFADE_TIME);
+                    } finally { isLoading = false; songSelectorBtn.style.opacity = '1'; }
+                }, CROSSFADE_TIME * 1000);
+            } else {
+                isLoading = false;
+                songSelectorBtn.style.opacity = '1';
             }
         }
 
@@ -583,7 +594,6 @@
             const now = audioContext.currentTime;
 
             if (isPlaying) {
-                // 渐出效果
                 gainNode.gain.cancelScheduledValues(now);
                 gainNode.gain.setValueAtTime(gainNode.gain.value, now);
                 gainNode.gain.linearRampToValueAtTime(0, now + CROSSFADE_TIME);
@@ -603,7 +613,17 @@
                 songSelectorBtn.style.opacity = '0.5';
                 try {
                     const buffer = await loadAudioBuffer(`music/${musicData[currentIndex].file}`);
-                    playWithWebAudio(buffer, true);
+                    const source = audioContext.createBufferSource();
+                    source.buffer = buffer;
+                    source.loop = true;
+                    source.connect(gainNode);
+                    source.start(0);
+                    currentSource = source;
+
+                    gainNode.gain.cancelScheduledValues(audioContext.currentTime);
+                    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(baseVolume, audioContext.currentTime + CROSSFADE_TIME);
+                    
                     playBtn.classList.add('playing');
                     isPlaying = true;
                 } finally { isLoading = false; songSelectorBtn.style.opacity = '1'; }
@@ -612,7 +632,6 @@
 
         playBtn.onclick = togglePlay;
 
-        // 音量调节
         function updateVolume(percent, save = true) {
             percent = Math.max(0, Math.min(1, percent));
             baseVolume = percent;
@@ -622,9 +641,8 @@
             volumeThumb.style.left = (percent * 100) + '%';
             
             if (gainNode && (remainingSeconds <= 0 || remainingSeconds > FADE_DURATION)) {
-                const now = audioContext.currentTime;
-                gainNode.gain.cancelScheduledValues(now);
-                gainNode.gain.setValueAtTime(baseVolume, now);
+                gainNode.gain.cancelScheduledValues(audioContext.currentTime);
+                gainNode.gain.setValueAtTime(baseVolume, audioContext.currentTime);
             }
         }
 
@@ -652,7 +670,6 @@
 
         updateVolume(baseVolume, false);
 
-        // iOS 菜单
         function showIOSMenu(items, onSelect) {
             iosMenuGroup.innerHTML = '';
             items.forEach(item => {
@@ -675,7 +692,7 @@
 
         songSelectorBtn.onclick = () => {
             const items = musicData.map((m, i) => ({ label: m.name, value: i }));
-            showIOSMenu(items, selectMusic);
+            showIOSMenu(items, switchMusic);
         };
 
         timerBtn.onclick = () => {
@@ -683,7 +700,6 @@
             showIOSMenu(items, startTimer);
         };
 
-        // 定时器
         function startTimer(minutes) {
             if (timerInterval) clearInterval(timerInterval);
             remainingSeconds = minutes * 60;
@@ -724,7 +740,6 @@
 
         cancelBtn.onclick = clearTimer;
 
-        // 音量展开
         volumeBtn.querySelector('.trigger').onclick = (e) => {
             e.stopPropagation();
             volumeBtn.classList.toggle('expanded');
