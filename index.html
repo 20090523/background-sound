@@ -12,8 +12,9 @@
             --glass: rgba(255, 255, 255, 0.08);
             --glass-border: rgba(255, 255, 255, 0.12);
             --accent-blue: #3b82f6;
+            --accent-green: #4cd964;
             --accent-red: #ef4444;
-            --ios-bg: rgba(25, 25, 25, 0.85);
+            --ios-bg: rgba(30, 30, 30, 0.88);
         }
 
         * {
@@ -125,9 +126,9 @@
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            background: rgba(0, 0, 0, 0.35);
-            backdrop-filter: blur(20px);
+            background: rgba(0, 0, 0, 0.4);
             -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
             border: none;
             cursor: pointer;
             display: flex;
@@ -161,13 +162,13 @@
             position: absolute;
             inset: -4px;
             border-radius: 50%;
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            animation: rippleExpand 2s ease-out forwards;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            animation: rippleExpand 3s ease-out forwards;
         }
 
         @keyframes rippleExpand {
-            0% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(1.5); opacity: 0; }
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(1.6); opacity: 0; }
         }
 
         @keyframes scaleIn {
@@ -209,7 +210,7 @@
             height: 24px;
         }
 
-        /* 倒计时显示 - 滚动数字动画 */
+        /* 倒计时显示 - 透明简洁风格 */
         .countdown-container {
             position: absolute;
             left: 50%;
@@ -228,54 +229,12 @@
             pointer-events: auto;
         }
 
-        .countdown-time-wrapper {
-            height: 1.4em;
-            overflow: hidden;
-            position: relative;
-        }
-
         .countdown-time {
             font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
             font-size: 1.1rem;
             font-weight: 500;
             color: var(--text-primary);
             letter-spacing: 0.5px;
-            display: block;
-            line-height: 1.4;
-        }
-
-        .countdown-time.exit {
-            animation: slideOutUp 0.35s ease-out forwards;
-        }
-
-        .countdown-time.enter {
-            animation: slideInUp 0.35s ease-out forwards;
-        }
-
-        @keyframes slideOutUp {
-            0% {
-                transform: translateY(0);
-                opacity: 1;
-                filter: blur(0);
-            }
-            100% {
-                transform: translateY(-100%);
-                opacity: 0;
-                filter: blur(4px);
-            }
-        }
-
-        @keyframes slideInUp {
-            0% {
-                transform: translateY(100%);
-                opacity: 0;
-                filter: blur(4px);
-            }
-            100% {
-                transform: translateY(0);
-                opacity: 1;
-                filter: blur(0);
-            }
         }
 
         .countdown-label {
@@ -327,8 +286,8 @@
 
         .ios-menu-group {
             background: var(--ios-bg);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(40px);
+            backdrop-filter: blur(40px);
             border-radius: 14px;
             overflow: hidden;
             margin-bottom: 8px;
@@ -361,11 +320,24 @@
         }
 
         /* iOS 音量滑块菜单 */
+        .ios-volume-header {
+            padding: 12px 16px 8px;
+            text-align: center;
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .ios-volume-title {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.3px;
+        }
+
         .ios-volume-container {
-            padding: 24px 20px;
+            padding: 20px 20px 24px;
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
         }
 
         .ios-volume-icon {
@@ -374,14 +346,14 @@
         }
 
         .ios-volume-icon svg {
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             display: block;
         }
 
         .ios-volume-slider {
             flex: 1;
-            height: 44px;
+            height: 40px;
             display: flex;
             align-items: center;
             position: relative;
@@ -391,29 +363,29 @@
 
         .ios-volume-track {
             width: 100%;
-            height: 6px;
+            height: 4px;
             background: rgba(255, 255, 255, 0.15);
-            border-radius: 3px;
+            border-radius: 2px;
             position: relative;
             overflow: hidden;
         }
 
         .ios-volume-fill {
             height: 100%;
-            background: #fff;
-            border-radius: 3px;
+            background: var(--accent-green);
+            border-radius: 2px;
             transition: width 0.05s ease;
         }
 
         .ios-volume-thumb {
-            width: 28px;
-            height: 28px;
+            width: 22px;
+            height: 22px;
             background: #fff;
             border-radius: 50%;
             position: absolute;
             top: 50%;
             transform: translate(-50%, -50%);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
             z-index: 10;
             transition: transform 0.1s ease;
         }
@@ -424,8 +396,8 @@
 
         .ios-cancel {
             background: var(--ios-bg);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(40px);
+            backdrop-filter: blur(40px);
             border-radius: 14px;
             width: 100%;
             padding: 16px;
@@ -475,9 +447,7 @@
 
         <!-- 倒计时显示 -->
         <div class="countdown-container" id="countdownContainer">
-            <div class="countdown-time-wrapper">
-                <span class="countdown-time" id="countdownTime">5 min</span>
-            </div>
+            <span class="countdown-time" id="countdownTime">5 min</span>
             <span class="countdown-label">后停止播放</span>
         </div>
 
@@ -517,7 +487,7 @@
         const volumeBtn = document.getElementById('volumeBtn');
         const timerBtn = document.getElementById('timerBtn');
         const countdownContainer = document.getElementById('countdownContainer');
-        const countdownTimeWrapper = document.querySelector('.countdown-time-wrapper');
+        const countdownTime = document.getElementById('countdownTime');
         const iosOverlay = document.getElementById('iosOverlay');
         const iosMenu = document.getElementById('iosMenu');
         const iosMenuGroup = document.getElementById('iosMenuGroup');
@@ -535,7 +505,6 @@
 
         let timerInterval = null;
         let remainingSeconds = 0;
-        let lastDisplayedMinutes = -1;
         const FADE_DURATION = 10;
         const CROSSFADE_TIME = 1.0;
 
@@ -582,7 +551,7 @@
         function startRipples() {
             if (rippleInterval) return;
             createRipple();
-            rippleInterval = setInterval(createRipple, 700);
+            rippleInterval = setInterval(createRipple, 1000);
         }
 
         function stopRipples() {
@@ -694,10 +663,16 @@
         }
 
         // iOS 菜单
-        function showIOSMenu(items, onSelect, isVolumeMenu = false) {
+        function showIOSMenu(items, onSelect, menuType = 'default') {
             iosMenuGroup.innerHTML = '';
 
-            if (isVolumeMenu) {
+            if (menuType === 'volume') {
+                // 音量滑块菜单
+                const header = document.createElement('div');
+                header.className = 'ios-volume-header';
+                header.innerHTML = '<span class="ios-volume-title">音量调节</span>';
+                iosMenuGroup.appendChild(header);
+
                 const volumeContainer = document.createElement('div');
                 volumeContainer.className = 'ios-volume-container';
                 volumeContainer.innerHTML = `
@@ -716,6 +691,7 @@
                 `;
                 iosMenuGroup.appendChild(volumeContainer);
 
+                // 初始化音量滑块
                 setTimeout(() => {
                     const slider = document.getElementById('iosVolumeSlider');
                     const fill = document.getElementById('iosVolumeFill');
@@ -734,7 +710,8 @@
                         baseVolume = percent;
                         updateVolumeUI(percent);
 
-                        if (gainNode && (remainingSeconds <= 0 || remainingSeconds > FADE_DURATION)) {
+                        // 只有在播放时才调整音量
+                        if (isPlaying && gainNode && audioContext && (remainingSeconds <= 0 || remainingSeconds > FADE_DURATION)) {
                             gainNode.gain.cancelScheduledValues(audioContext.currentTime);
                             gainNode.gain.setValueAtTime(baseVolume, audioContext.currentTime);
                         }
@@ -758,10 +735,19 @@
                         document.addEventListener('touchend', end);
                     }, { passive: true });
                 }, 0);
+            } else if (menuType === 'countdown') {
+                // 倒计时操作菜单
+                const btn = document.createElement('button');
+                btn.className = 'ios-menu-item danger';
+                btn.textContent = '停止定时';
+                addTapEffect(btn);
+                btn.onclick = () => { clearTimer(); hideIOSMenu(); };
+                iosMenuGroup.appendChild(btn);
             } else {
+                // 常规菜单项
                 items.forEach(item => {
                     const btn = document.createElement('button');
-                    btn.className = 'ios-menu-item' + (item.danger ? ' danger' : '');
+                    btn.className = 'ios-menu-item';
                     btn.textContent = item.label;
                     addTapEffect(btn);
                     btn.onclick = () => { onSelect(item.value); hideIOSMenu(); };
@@ -792,22 +778,18 @@
         };
 
         volumeBtn.onclick = () => {
-            showIOSMenu([], null, true);
+            showIOSMenu([], null, 'volume');
         };
 
-        // 倒计时菜单
+        // 点击倒计时显示操作菜单
         countdownContainer.onclick = () => {
-            const items = [{ label: '停止定时', value: 'cancel', danger: true }];
-            showIOSMenu(items, (val) => {
-                if (val === 'cancel') clearTimer();
-            });
+            showIOSMenu([], null, 'countdown');
         };
 
         function startTimer(minutes) {
             if (timerInterval) clearInterval(timerInterval);
             remainingSeconds = minutes * 60;
-            lastDisplayedMinutes = -1;
-            updateCountdownUI(true);
+            updateCountdownUI();
             countdownContainer.classList.add('visible');
             countdownContainer.classList.remove('ending');
 
@@ -817,7 +799,8 @@
                     if (isPlaying) togglePlay();
                     clearTimer();
                 } else {
-                    if (remainingSeconds <= FADE_DURATION && gainNode) {
+                    // 只有在播放时才渐弱
+                    if (remainingSeconds <= FADE_DURATION && isPlaying && gainNode && audioContext) {
                         const ratio = remainingSeconds / FADE_DURATION;
                         gainNode.gain.setValueAtTime(baseVolume * ratio, audioContext.currentTime);
                         countdownContainer.classList.add('ending');
@@ -831,44 +814,16 @@
             if (timerInterval) clearInterval(timerInterval);
             timerInterval = null;
             remainingSeconds = 0;
-            lastDisplayedMinutes = -1;
             countdownContainer.classList.remove('visible', 'ending');
-            if (gainNode && audioContext) gainNode.gain.setValueAtTime(baseVolume, audioContext.currentTime);
+            // 只有在播放时才恢复音量
+            if (isPlaying && gainNode && audioContext) {
+                gainNode.gain.setValueAtTime(baseVolume, audioContext.currentTime);
+            }
         }
 
-        function updateCountdownUI(forceUpdate = false) {
+        function updateCountdownUI() {
             const m = Math.floor(remainingSeconds / 60);
-
-            // 只在分钟数变化时执行动画
-            if (m === lastDisplayedMinutes && !forceUpdate) return;
-
-            const newText = `${m} min`;
-            const currentEl = countdownTimeWrapper.querySelector('.countdown-time');
-
-            if (forceUpdate || lastDisplayedMinutes === -1) {
-                // 首次显示，不需要动画
-                currentEl.textContent = newText;
-            } else {
-                // 创建退出动画
-                currentEl.classList.add('exit');
-
-                // 创建新元素进入
-                const newEl = document.createElement('span');
-                newEl.className = 'countdown-time enter';
-                newEl.textContent = newText;
-                countdownTimeWrapper.appendChild(newEl);
-
-                // 动画结束后清理
-                currentEl.addEventListener('animationend', () => {
-                    currentEl.remove();
-                }, { once: true });
-
-                newEl.addEventListener('animationend', () => {
-                    newEl.classList.remove('enter');
-                }, { once: true });
-            }
-
-            lastDisplayedMinutes = m;
+            countdownTime.textContent = `${m} min`;
         }
     </script>
 </body>
