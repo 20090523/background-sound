@@ -182,20 +182,49 @@
             animation: scaleIn 0.6s ease 0.4s forwards;
         }
 
+        /* 模糊背景层 - 使用实际的背景图片模糊 */
+        .play-btn-blur {
+            position: absolute;
+            inset: -10px;
+            border-radius: 50%;
+            overflow: hidden;
+            z-index: 1;
+            transition: opacity 0.4s ease;
+        }
+
+        .play-btn-blur::before {
+            content: '';
+            position: absolute;
+            inset: -20px;
+            background-image: var(--current-bg-img);
+            background-size: cover;
+            background-position: center;
+            filter: blur(15px);
+            -webkit-filter: blur(15px);
+            transform: scale(1.1);
+        }
+
+        .play-btn-blur::after {
+            content: '';
+            position: absolute;
+            inset: 10px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 50%;
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+        }
+
         .play-btn {
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            /* 直接应用模糊和半透明背景 */
-            background: rgba(0, 0, 0, 0.2);
-            -webkit-backdrop-filter: blur(15px);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: transparent;
+            border: none;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s ease, backdrop-filter 0.4s ease;
+            transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s ease;
             position: relative;
             z-index: 3;
             color: #fff;
@@ -204,8 +233,10 @@
         .play-btn.playing {
             background: rgba(255, 255, 255, 0.95);
             color: var(--accent-blue);
-            -webkit-backdrop-filter: blur(0px); /* 播放时移除模糊效果 */
-            backdrop-filter: blur(0px);
+        }
+
+        .play-btn.playing ~ .play-btn-blur {
+            opacity: 0;
         }
 
         .play-btn svg {
@@ -724,7 +755,7 @@
 
         .timer-form-buttons {
             display: flex;
-            gap: 12px; /* 保持12px的gap */
+            gap: 12px;
             margin-top: 20px;
         }
 
@@ -738,27 +769,7 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.15s ease;
-            /* 修正布局：添加margin以确保与边缘的距离 */
-            margin: 0 4px;
         }
-        .timer-form-buttons {
-            /* 修正布局：增加gap并移除子元素的margin来简化 */
-            gap: 16px;
-            margin-top: 24px;
-        }
-        .timer-form-btn {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            margin: 0; /* 移除margin */
-        }
-
 
         .timer-form-btn.cancel {
             background: rgba(255, 255, 255, 0.08);
@@ -816,6 +827,7 @@
             <button class="play-btn" id="playBtn">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M6 10a7 7 0 1 1 13 3.6a10 10 0 0 1-2 2a8 8 0 0 0-2 3A4.5 4.5 0 0 1 8.2 20"/><path d="M10 10a3 3 0 1 1 5 2.2"/></g></svg>
             </button>
+            <div class="play-btn-blur" id="playBtnBlur"></div>
         </div>
     </div>
 
@@ -896,11 +908,6 @@
             { label: '1 小时', value: 60 }
         ];
 
-        // 为定时器选项生成唯一ID
-        function generateTimerId(timer) {
-            return `${timer.value}-${timer.label || ''}`;
-        }
-
         // 加载自定义定时器
         function loadCustomTimers() {
             return loadFromStorage('custom_timers', []);
@@ -913,21 +920,13 @@
 
         // 获取所有定时器选项（自定义 + 默认）
         function getAllTimerOptions() {
-            const customTimers = loadCustomTimers().map((timer, index) => ({
-                ...timer,
-                id: `custom-${index}` // 使用索引确保ID唯一，解决同名/同在一时长问题
-            }));
-            
-            const defaultTimers = defaultTimerOptions.map(timer => ({
-                ...timer,
-                id: generateTimerId(timer)
-            }));
-
-            return [...customTimers, ...defaultTimers];
+            const customTimers = loadCustomTimers();
+            return [...customTimers, ...defaultTimerOptions];
         }
 
         const bgContainer = document.getElementById('bgContainer');
         const playBtn = document.getElementById('playBtn');
+        const playBtnBlur = document.getElementById('playBtnBlur');
         const rippleContainer = document.getElementById('rippleContainer');
         const songSelectorBtn = document.getElementById('songSelectorBtn');
         const volumeBtn = document.getElementById('volumeBtn');
@@ -983,7 +982,7 @@
 
         let timerInterval = null;
         let remainingSeconds = 0;
-        let currentTimerId = null; // 存储当前定时器的唯一ID
+        let currentTimerLabel = null; // 存储当前定时器的别名
         const FADE_DURATION = 10;
         const CROSSFADE_TIME = 1.0;
 
@@ -1003,26 +1002,38 @@
 
         // 资源预加载 - 优化性能
         async function preloadAllResources() {
-            const imagePromises = musicData.map(item => {
-                return new Promise((resolve) => {
+            const imagePromises = [];
+            const audioPromises = [];
+
+            // 预加载所有背景图片
+            musicData.forEach(item => {
+                const imgUrl = `img/${item.img}`;
+                const promise = new Promise((resolve) => {
                     const img = new Image();
-                    img.onload = img.onerror = resolve;
-                    img.src = `img/${item.img}`;
+                    img.onload = resolve;
+                    img.onerror = resolve;
+                    img.src = imgUrl;
                 });
+                imagePromises.push(promise);
             });
 
+            // 初始化音频上下文
             initAudioContext();
             
             // 优先加载当前音乐
-            await loadAudioBuffer(`music/${musicData[currentIndex].file}`).catch(() => null);
+            const currentAudioUrl = `music/${musicData[currentIndex].file}`;
+            await loadAudioBuffer(currentAudioUrl).catch(() => null);
 
             // 后台加载其他音乐
-            const audioPromises = musicData
-                .filter((_, i) => i !== currentIndex)
-                .map(item => loadAudioBuffer(`music/${item.file}`).catch(() => null));
+            for (let i = 0; i < musicData.length; i++) {
+                if (i !== currentIndex) {
+                    const audioUrl = `music/${musicData[i].file}`;
+                    audioPromises.push(loadAudioBuffer(audioUrl).catch(() => null));
+                }
+            }
 
             await Promise.all(imagePromises);
-            Promise.all(audioPromises); // 不阻塞UI
+            Promise.all(audioPromises); // 不等待其他音频加载完成
             
             loadingOverlay.classList.add('hidden');
         }
@@ -1039,16 +1050,12 @@
 
         async function loadAudioBuffer(url) {
             if (audioBufferCache[url]) return audioBufferCache[url];
-            try {
-                const response = await fetch(url);
-                const arrayBuffer = await response.arrayBuffer();
-                const buffer = await audioContext.decodeAudioData(arrayBuffer);
-                audioBufferCache[url] = buffer;
-                return buffer;
-            } catch (error) {
-                console.error(`加载音频失败: ${url}`, error);
-                throw error;
-            }
+
+            const response = await fetch(url);
+            const arrayBuffer = await response.arrayBuffer();
+            const buffer = await audioContext.decodeAudioData(arrayBuffer);
+            audioBufferCache[url] = buffer;
+            return buffer;
         }
 
         // 水波纹管理 - 性能优化
@@ -1061,7 +1068,9 @@
             ripple.className = 'ripple';
             rippleContainer.appendChild(ripple);
 
-            ripple.addEventListener('animationend', () => ripple.remove(), { once: true });
+            ripple.addEventListener('animationend', () => {
+                ripple.remove();
+            }, { once: true });
         }
 
         function startRipples() {
@@ -1071,8 +1080,11 @@
         }
 
         function stopRipples() {
-            clearInterval(rippleInterval);
-            rippleInterval = null;
+            if (rippleInterval) {
+                clearInterval(rippleInterval);
+                rippleInterval = null;
+            }
+            // 清理现有水波纹
             rippleContainer.innerHTML = '';
         }
 
@@ -1101,14 +1113,27 @@
 
                 const oldSource = currentSource;
                 currentSource = null;
-                setTimeout(() => { try { oldSource.stop(); oldSource.disconnect(); } catch(e) {} }, CROSSFADE_TIME * 1000);
+
+                setTimeout(() => {
+                    try { oldSource.stop(); oldSource.disconnect(); } catch(e) {}
+                }, CROSSFADE_TIME * 1000);
 
                 try {
                     const buffer = await loadAudioBuffer(`music/${musicData[index].file}`);
-                    if (thisSwitchId !== switchId) return; // 切换中断
+
+                    if (thisSwitchId !== switchId) {
+                        isLoading = false;
+                        songSelectorBtn.style.opacity = '1';
+                        return;
+                    }
 
                     await new Promise(r => setTimeout(r, CROSSFADE_TIME * 1000));
-                    if (thisSwitchId !== switchId || !isPlaying) return; // 切换中断或已暂停
+
+                    if (thisSwitchId !== switchId || !isPlaying) {
+                        isLoading = false;
+                        songSelectorBtn.style.opacity = '1';
+                        return;
+                    }
 
                     const newSource = audioContext.createBufferSource();
                     newSource.buffer = buffer;
@@ -1122,10 +1147,8 @@
                 } catch(e) {
                     console.error('切换音乐失败:', e);
                 } finally {
-                    if (thisSwitchId === switchId) {
-                        isLoading = false;
-                        songSelectorBtn.style.opacity = '1';
-                    }
+                    isLoading = false;
+                    songSelectorBtn.style.opacity = '1';
                 }
             } else {
                 isLoading = false;
@@ -1143,14 +1166,16 @@
                 gainNode.gain.linearRampToValueAtTime(0, now + CROSSFADE_TIME);
 
                 stopRipples();
-                isPlaying = false;
-                playBtn.classList.remove('playing');
 
                 const oldSource = currentSource;
                 currentSource = null;
-                setTimeout(() => { if (oldSource) { try { oldSource.stop(); oldSource.disconnect(); } catch(e) {} } }, CROSSFADE_TIME * 1000);
+                isPlaying = false;
+                playBtn.classList.remove('playing');
+
+                setTimeout(() => {
+                    try { if (oldSource) { oldSource.stop(); oldSource.disconnect(); } } catch(e) {}
+                }, CROSSFADE_TIME * 1000);
             } else {
-                if (isLoading) return;
                 isLoading = true;
                 songSelectorBtn.style.opacity = '0.5';
                 try {
@@ -1162,15 +1187,13 @@
                     source.start(0);
                     currentSource = source;
 
-                    gainNode.gain.cancelScheduledValues(now);
-                    gainNode.gain.setValueAtTime(0, now);
-                    gainNode.gain.linearRampToValueAtTime(baseVolume, now + CROSSFADE_TIME);
+                    gainNode.gain.cancelScheduledValues(audioContext.currentTime);
+                    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(baseVolume, audioContext.currentTime + CROSSFADE_TIME);
 
                     playBtn.classList.add('playing');
                     isPlaying = true;
                     startRipples();
-                } catch(e) {
-                    console.error("播放失败:", e);
                 } finally { 
                     isLoading = false; 
                     songSelectorBtn.style.opacity = '1'; 
@@ -1184,32 +1207,95 @@
         function addTapEffect(element) {
             const addTap = () => element.classList.add('tapped');
             const removeTap = () => element.classList.remove('tapped');
-            ['touchstart', 'mousedown'].forEach(evt => element.addEventListener(evt, addTap, { passive: true }));
-            ['touchend', 'touchcancel', 'mouseup', 'mouseleave'].forEach(evt => element.addEventListener(evt, removeTap, { passive: true }));
+
+            element.addEventListener('touchstart', addTap, { passive: true });
+            element.addEventListener('touchend', removeTap, { passive: true });
+            element.addEventListener('touchcancel', removeTap, { passive: true });
+            element.addEventListener('mousedown', addTap);
+            element.addEventListener('mouseup', removeTap);
+            element.addEventListener('mouseleave', removeTap);
         }
 
         // iOS 菜单
         function showIOSMenu(items, onSelect, menuType = 'default') {
             iosMenuGroup.innerHTML = '';
-            
-            // 修复 #4：根据菜单类型修改取消按钮文本
-            iosCancel.textContent = menuType === 'volume' ? '完成' : '取消';
+
+            // 音量菜单显示"完成"，其他显示"取消"
+            if (menuType === 'volume') {
+                iosCancel.textContent = '完成';
+            } else {
+                iosCancel.textContent = '取消';
+            }
 
             if (menuType === 'volume') {
-                iosMenuGroup.innerHTML = `
-                    <div class="ios-volume-header"><span class="ios-volume-title">音量调节</span></div>
-                    <div class="ios-volume-container">
-                        <div class="ios-volume-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M7 15H4q-.425 0-.712-.288T3 14v-4q0-.425.288-.712T4 9h3l3.3-3.3q.475-.475 1.088-.213t.612.938v11.15q0 .675-.612.938T10.3 18.3z"/></svg></div>
-                        <div class="ios-volume-slider" id="iosVolumeSlider">
-                            <div class="ios-volume-track"><div class="ios-volume-fill" id="iosVolumeFill"></div></div>
-                            <div class="ios-volume-thumb" id="iosVolumeThumb"></div>
-                        </div>
-                        <div class="ios-volume-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19 11.975q0-2.075-1.1-3.787t-2.95-2.563q-.375-.175-.55-.537t-.05-.738q.15-.4.538-.575t.787 0Q18.1 4.85 19.55 7.063T21 11.974t-1.45 4.913t-3.875 3.287q-.4.175-.788 0t-.537-.575q-.125-.375.05-.737t.55-.538q1.85-.85 2.95-2.562t1.1-3.788M7 15H4q-.425 0-.712-.288T3 14v-4q0-.425.288-.712T4 9h3l3.3-3.3q.475-.475 1.088-.213t.612.938v11.15q0 .675-.612.938T10.3 18.3zm9.5-3q0 1.05-.475 1.988t-1.25 1.537q-.25.15-.513.013T14 15.1V8.85q0-.3.263-.437t.512.012q.775.625 1.25 1.575t.475 2"/></svg></div>
-                    </div>`;
-                
-                // 延迟执行以确保元素已渲染
-                setTimeout(() => setupVolumeSlider(), 0);
+                const header = document.createElement('div');
+                header.className = 'ios-volume-header';
+                header.innerHTML = '<span class="ios-volume-title">音量调节</span>';
+                iosMenuGroup.appendChild(header);
 
+                const volumeContainer = document.createElement('div');
+                volumeContainer.className = 'ios-volume-container';
+                volumeContainer.innerHTML = `
+                    <div class="ios-volume-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M7 15H4q-.425 0-.712-.288T3 14v-4q0-.425.288-.712T4 9h3l3.3-3.3q.475-.475 1.088-.213t.612.938v11.15q0 .675-.612.938T10.3 18.3z"/></svg>
+                    </div>
+                    <div class="ios-volume-slider" id="iosVolumeSlider">
+                        <div class="ios-volume-track">
+                            <div class="ios-volume-fill" id="iosVolumeFill"></div>
+                        </div>
+                        <div class="ios-volume-thumb" id="iosVolumeThumb"></div>
+                    </div>
+                    <div class="ios-volume-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M19 11.975q0-2.075-1.1-3.787t-2.95-2.563q-.375-.175-.55-.537t-.05-.738q.15-.4.538-.575t.787 0Q18.1 4.85 19.55 7.063T21 11.974t-1.45 4.913t-3.875 3.287q-.4.175-.788 0t-.537-.575q-.125-.375.05-.737t.55-.538q1.85-.85 2.95-2.562t1.1-3.788M7 15H4q-.425 0-.712-.288T3 14v-4q0-.425.288-.712T4 9h3l3.3-3.3q.475-.475 1.088-.213t.612.938v11.15q0 .675-.612.938T10.3 18.3zm9.5-3q0 1.05-.475 1.988t-1.25 1.537q-.25.15-.513.013T14 15.1V8.85q0-.3.263-.437t.512.012q.775.625 1.25 1.575t.475 2"/></svg>
+                    </div>
+                `;
+                iosMenuGroup.appendChild(volumeContainer);
+
+                setTimeout(() => {
+                    const slider = document.getElementById('iosVolumeSlider');
+                    const fill = document.getElementById('iosVolumeFill');
+                    const thumb = document.getElementById('iosVolumeThumb');
+
+                    function updateVolumeUI(percent) {
+                        const pct = (percent * 100) + '%';
+                        fill.style.width = pct;
+                        thumb.style.left = pct;
+                    }
+
+                    function handleVolumeChange(e) {
+                        const rect = slider.getBoundingClientRect();
+                        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                        const percent = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+
+                        baseVolume = percent;
+                        saveToStorage('bg_baseVolume', baseVolume);
+                        updateVolumeUI(percent);
+
+                        // 只在播放且未进入淡出阶段时调整音量
+                        if (isPlaying && gainNode && audioContext && (remainingSeconds <= 0 || remainingSeconds > FADE_DURATION)) {
+                            gainNode.gain.cancelScheduledValues(audioContext.currentTime);
+                            gainNode.gain.setValueAtTime(baseVolume, audioContext.currentTime);
+                        }
+                    }
+
+                    updateVolumeUI(baseVolume);
+
+                    slider.addEventListener('mousedown', (e) => {
+                        handleVolumeChange(e);
+                        const move = (ev) => { ev.preventDefault(); handleVolumeChange(ev); };
+                        const up = () => { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); };
+                        document.addEventListener('mousemove', move);
+                        document.addEventListener('mouseup', up);
+                    });
+
+                    slider.addEventListener('touchstart', (e) => {
+                        handleVolumeChange(e);
+                        const move = (ev) => handleVolumeChange(ev);
+                        const end = () => { document.removeEventListener('touchmove', move); document.removeEventListener('touchend', end); };
+                        document.addEventListener('touchmove', move, { passive: true });
+                        document.addEventListener('touchend', end);
+                    }, { passive: true });
+                }, 0);
             } else if (menuType === 'countdown') {
                 const btn = document.createElement('button');
                 btn.className = 'ios-menu-item danger';
@@ -1231,52 +1317,6 @@
             iosOverlay.classList.add('show');
             iosMenu.classList.add('show');
         }
-        
-        function setupVolumeSlider() {
-            const slider = document.getElementById('iosVolumeSlider');
-            const fill = document.getElementById('iosVolumeFill');
-            const thumb = document.getElementById('iosVolumeThumb');
-
-            const updateVolumeUI = (percent) => {
-                const pct = (percent * 100) + '%';
-                fill.style.width = pct;
-                thumb.style.left = pct;
-            };
-
-            const handleVolumeChange = (e) => {
-                const rect = slider.getBoundingClientRect();
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const percent = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-
-                baseVolume = percent;
-                saveToStorage('bg_baseVolume', baseVolume);
-                updateVolumeUI(percent);
-
-                if (isPlaying && gainNode && audioContext && (remainingSeconds <= 0 || remainingSeconds > FADE_DURATION)) {
-                    gainNode.gain.cancelScheduledValues(audioContext.currentTime);
-                    gainNode.gain.setValueAtTime(baseVolume, audioContext.currentTime);
-                }
-            };
-
-            updateVolumeUI(baseVolume);
-
-            const onPointerDown = (e) => {
-                handleVolumeChange(e);
-                const onPointerMove = (ev) => { ev.preventDefault(); handleVolumeChange(ev); };
-                const onPointerUp = () => {
-                    document.removeEventListener('mousemove', onPointerMove);
-                    document.removeEventListener('mouseup', onPointerUp);
-                    document.removeEventListener('touchmove', onPointerMove);
-                    document.removeEventListener('touchend', onPointerUp);
-                };
-                document.addEventListener('mousemove', onPointerMove);
-                document.addEventListener('mouseup', onPointerUp);
-                document.addEventListener('touchmove', onPointerMove, { passive: false });
-                document.addEventListener('touchend', onPointerUp);
-            };
-            slider.addEventListener('mousedown', onPointerDown);
-            slider.addEventListener('touchstart', onPointerDown, { passive: true });
-        }
 
         function hideIOSMenu() {
             iosOverlay.classList.remove('show');
@@ -1288,93 +1328,105 @@
 
         songSelectorBtn.onclick = () => {
             const items = musicData.map((m, i) => ({ label: m.name, value: i }));
-            showIOSMenu(items, (item) => switchMusic(item.value));
+            showIOSMenu(items, c);
         };
 
         timerBtn.onclick = () => {
-            const items = getAllTimerOptions().map(o => ({ label: o.label || `${o.value} 分钟`, value: o.value, id: o.id }));
-            items.push({ label: '自定义...', value: 'custom', id: 'custom' });
-            showIOSMenu(items, (item) => {
-                if (item.value === 'custom') {
+            const items = getAllTimerOptions().map(o => ({ label: o.label, value: o.value }));
+            // 添加自定义按钮
+            items.push({ label: '自定义...', value: 'custom', isCustom: true });
+            showIOSMenu(items, (valule) => {
+                if ( === 'custom') {
                     showTimerEditModal();
                 } else {
-                    startTimer(item.value, item.id);
+                    startTimer();
                 }
             });
         };
 
-        volumeBtn.onclick = () => showIOSMenu([], null, 'volume');
-        countdownContainer.onclick = () => showIOSMenu([], null, 'countdown');
+        volumeBtn.onclick = () => {
+            showIOSMenu([], null, 'volume');
+        };
 
-        // 定时器功能
-        function startTimer(minutes, timerId) {
-            clearInterval(timerInterval);
+        countdownContainer.onclick = () => {
+            showIOSMenu([], null, 'countdown');
+        };
+
+        // 定时器功能 - 性能优化
+        function startTimer(minutes, label) {
+            if (timerInterval) clearInterval(timerInterval);
             remainingSeconds = minutes * 60;
-            currentTimerId = timerId; // 修复 #2：存储唯一ID
+            
+            // 直接使用传入的别名，不再查找
+            currentTimerLabel = label || null;
             
             updateCountdownUI();
             countdownContainer.classList.add('visible');
             countdownContainer.classList.remove('ending');
 
-            let lastTime = performance.now();
-            function timerTick() {
-                const now = performance.now();
-                const elapsed = (now - lastTime) / 1000;
+            // 使用 requestAnimationFrame 优化定时器性能
+            let lastTime = Date.now();
+            
+            timerInterval = setInterval(() => {
+                const now = Date.now();
+                const elapsed = Math.floor((now - lastTime) / 1000);
                 
-                if (elapsed >= 1) {
+                if (elapsed > 0) {
                     lastTime = now;
-                    remainingSeconds -= Math.round(elapsed);
+                    remainingSeconds -= elapsed;
                     
                     if (remainingSeconds <= 0) {
                         if (isPlaying) togglePlay();
                         clearTimer();
-                        return;
+                    } else {
+                        // 只在播放时才渐弱
+                        if (remainingSeconds <= FADE_DURATION && isPlaying && gainNode && audioContext) {
+                            const ratio = remainingSeconds / FADE_DURATION;
+                            gainNode.gain.setValueAtTime(baseVolume * ratio, audioContext.currentTime);
+                            countdownContainer.classList.add('ending');
+                        }
+                        updateCountdownUI();
                     }
-                    
-                    if (isPlaying && remainingSeconds <= FADE_DURATION) {
-                        const ratio = remainingSeconds / FADE_DURATION;
-                        gainNode.gain.setValueAtTime(baseVolume * ratio, audioContext.currentTime);
-                        countdownContainer.classList.add('ending');
-                    }
-                    updateCountdownUI();
                 }
-                timerInterval = requestAnimationFrame(timerTick);
-            }
-            timerInterval = requestAnimationFrame(timerTick);
+            }, 1000);
         }
 
         function clearTimer() {
-            if (typeof timerInterval === 'number') cancelAnimationFrame(timerInterval);
+            if (timerInterval) clearInterval(timerInterval);
             timerInterval = null;
             remainingSeconds = 0;
-            currentTimerId = null;
+            currentTimerLabel = null;
             countdownContainer.classList.remove('visible', 'ending');
+            // 只在播放时才恢复音量
             if (isPlaying && gainNode && audioContext) {
                 gainNode.gain.setValueAtTime(baseVolume, audioContext.currentTime);
             }
         }
 
         function updateCountdownUI() {
-            // 修复 #5：不再显示别名，始终显示剩余时间 "x min"
-            const m = Math.ceil(remainingSeconds / 60);
-            countdownTime.textContent = `${m} min`;
-        }
-
+            const m = Math.floor(remainingSeconds / 60);
+            // 如果有自定义别名，显示别名，否则显示时长
+            if (currentTimerLabel) {
+               始终显示时长w不nTim
+          
         // ==================== 自定义定时器功能 ====================
         
         let draggedItem = null;
         let editingTimerIndex = null;
 
+        // 显示定时器编辑弹窗
         function showTimerEditModal() {
             hideIOSMenu();
             renderTimerEditList();
             timerEditModal.classList.add('show');
         }
 
+        // 隐藏定时器编辑弹窗
         function hideTimerEditModal() {
             timerEditModal.classList.remove('show');
         }
 
+        // 渲染定时器编辑列表
         function renderTimerEditList() {
             const customTimers = loadCustomTimers();
             timerEditList.innerHTML = '';
@@ -1389,23 +1441,41 @@
                 const timeText = timer.label ? `${timer.value} 分钟` : '';
 
                 item.innerHTML = `
-                    <div class="timer-drag-handle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M9 20q-.825 0-1.412-.587T7 18t.588-1.412T9 16t1.413.588T11 18t-.587 1.413T9 20m6 0q-.825 0-1.412-.587T13 18t.588-1.412T15 16t1.413.588T17 18t-.587 1.413T15 20M9 14q-.825 0-1.412-.587T7 12t.588-1.412T9 10t1.413.588T11 12t-.587 1.413T9 14m6 0q-.825 0-1.412-.587T13 12t.588-1.412T15 10t1.413.588T17 12t-.587 1.413T15 14M9 8q-.825 0-1.412-.587T7 6t.588-1.412T9 4t1.413.588T11 6t-.587 1.413T9 8m6 0q-.825 0-1.412-.587T13 6t.588-1.412T15 4t1.413.588T17 6t-.587 1.413T15 8"/></svg></div>
+                    <div class="timer-drag-handle">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M9 20q-.825 0-1.412-.587T7 18t.588-1.412T9 16t1.413.588T11 18t-.587 1.413T9 20m6 0q-.825 0-1.412-.587T13 18t.588-1.412T15 16t1.413.588T17 18t-.587 1.413T15 20M9 14q-.825 0-1.412-.587T7 12t.588-1.412T9 10t1.413.588T11 12t-.587 1.413T9 14m6 0q-.825 0-1.412-.587T13 12t.588-1.412T15 10t1.413.588T17 12t-.587 1.413T15 14M9 8q-.825 0-1.412-.587T7 6t.588-1.412T9 4t1.413.588T11 6t-.587 1.413T9 8m6 0q-.825 0-1.412-.587T13 6t.588-1.412T15 4t1.413.588T17 6t-.587 1.413T15 8"/></svg>
+                    </div>
                     <div class="timer-edit-content">
                         <div class="timer-edit-label">${displayLabel}</div>
                         ${timeText ? `<div class="timer-edit-time">${timeText}</div>` : ''}
                     </div>
-                    <button class="timer-delete-btn" data-index="${index}"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M7 21q-.825 0-1.412-.587T5 19V6H4V4h5V3h6v1h5v2h-1v13q0 .825-.587 1.413T17 21zM17 6H7v13h10zM9 17h2V8H9zm4 0h2V8h-2zM7 6v13z"/></svg></button>`;
+                    <button class="timer-delete-btn" data-index="${index}">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M7 21q-.825 0-1.412-.587T5 19V6H4V4h5V3h6v1h5v2h-1v13q0 .825-.587 1.413T17 21zM17 6H7v13h10zM9 17h2V8H9zm4 0h2V8h-2zM7 6v13z"/></svg>
+                    </button>
+                `;
 
+                // 拖拽事件
                 item.addEventListener('dragstart', handleDragStart);
                 item.addEventListener('dragend', handleDragEnd);
                 item.addEventListener('dragover', handleDragOver);
                 item.addEventListener('drop', handleDrop);
-                item.querySelector('.timer-edit-content').addEventListener('click', () => { editingTimerIndex = index; showTimerForm(timer); });
-                item.querySelector('.timer-delete-btn').addEventListener('click', (e) => { e.stopPropagation(); deleteTimer(index); });
+
+                // 点击编辑
+                item.querySelector('.timer-edit-content').addEventListener('click', () => {
+                    editingTimerIndex = index;
+                    showTimerForm(timer);
+                });
+
+                // 删除按钮
+                item.querySelector('.timer-delete-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteTimer(index);
+                });
+
                 timerEditList.appendChild(item);
             });
         }
 
+        // 拖拽处理函数
         function handleDragStart(e) {
             draggedItem = this;
             this.classList.add('dragging');
@@ -1419,25 +1489,35 @@
 
         function handleDragOver(e) {
             e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+
             if (this === draggedItem) return;
-            const rect = this.getBoundingClientRect();
-            const isAfter = e.clientY > rect.top + rect.height / 2;
-            this.parentNode.insertBefore(draggedItem, isAfter ? this.nextSibling : this);
+
+            const items = Array.from(timerEditList.children);
+            const draggedIndex = items.indexOf(draggedItem);
+            const targetIndex = items.indexOf(this);
+
+            if (draggedIndex < targetIndex) {
+                this.parentNode.insertBefore(draggedItem, this.nextSibling);
+            } else {
+                this.parentNode.insertBefore(draggedItem, this);
+            }
         }
 
         function handleDrop(e) {
             e.stopPropagation();
+            
+            // 更新存储顺序
             const customTimers = loadCustomTimers();
-            const newOrder = Array.from(timerEditList.children).map(item => customTimers[parseInt(item.dataset.index)]);
+            const items = Array.from(timerEditList.children);
+            const newOrder = items.map(item => customTimers[parseInt(item.dataset.index)]);
             saveCustomTimers(newOrder);
             renderTimerEditList();
         }
 
+        // 显示添加/编辑表单
         function showTimerForm(timer = null) {
-            editingTimerIndex = null;
             if (timer) {
-                const customTimers = loadCustomTimers();
-                editingTimerIndex = customTimers.findIndex(t => t.label === timer.label && t.value === timer.value);
                 timerFormTitle.textContent = '编辑定时器';
                 timerLabelInput.value = timer.label || '';
                 timerValueInput.value = timer.value;
@@ -1445,29 +1525,37 @@
                 timerFormTitle.textContent = '添加定时器';
                 timerLabelInput.value = '';
                 timerValueInput.value = '';
+                editingTimerIndex = null;
             }
             timerFormModal.classList.add('show');
         }
 
+        // 隐藏表单
         function hideTimerForm() {
             timerFormModal.classList.remove('show');
         }
 
+        // 保存定时器
         function saveTimer() {
             const label = timerLabelInput.value.trim();
             const value = parseInt(timerValueInput.value);
 
-            if (!value || value < 1 || value > 999) {
-                alert('请输入 1 到 999 之间的有效时长（分钟）。');
+            if (!value || value < 1) {
+                alert('请输入有效的时长');
                 return;
             }
 
             const customTimers = loadCustomTimers();
-            const timerData = { label, value };
+            const timerData = {
+                label: label,
+                value: value
+            };
 
-            if (editingTimerIndex !== null && editingTimerIndex > -1) {
+            if (editingTimerIndex !== null) {
+                // 编辑现有定时器
                 customTimers[editingTimerIndex] = timerData;
             } else {
+                // 添加新定时器
                 customTimers.push(timerData);
             }
 
@@ -1476,6 +1564,7 @@
             renderTimerEditList();
         }
 
+        // 删除定时器
         function deleteTimer(index) {
             const customTimers = loadCustomTimers();
             customTimers.splice(index, 1);
@@ -1488,12 +1577,20 @@
         timerAddBtn.onclick = () => showTimerForm();
         timerFormCancel.onclick = hideTimerForm;
         timerFormSave.onclick = saveTimer;
-        timerEditModal.onclick = (e) => { if (e.target === timerEditModal) hideTimerEditModal(); };
-        timerFormModal.onclick = (e) => { if (e.target === timerFormModal) hideTimerForm(); };
+        timerEditModal.onclick = (e) => {
+            if (e.target === timerEditModal) hideTimerEditModal();
+        };
+        timerFormModal.onclick = (e) => {
+            if (e.target === timerFormModal) hideTimerForm();
+        };
 
-        const handleEnterKey = (e) => { if (e.key === 'Enter') saveTimer(); };
-        timerValueInput.addEventListener('keypress', handleEnterKey);
-        timerLabelInput.addEventListener('keypress', handleEnterKey);
+        // 表单回车提交
+        timerValueInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') saveTimer();
+        });
+        timerLabelInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') saveTimer();
+        });
 
         // ==================== 结束自定义定时器功能 ====================
 
@@ -1502,4 +1599,3 @@
     </script>
 </body>
 </html>
-
