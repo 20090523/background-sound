@@ -180,30 +180,25 @@
             opacity: 0;
             transform: scale(0.8);
             animation: scaleIn 0.6s ease 0.4s forwards;
-        }
-
-        /* 关键修复：使用伪元素实现真正的背景模糊 */
-        .play-btn-wrapper::before {
-            content: '';
-            position: absolute;
-            inset: -20px;
-            border-radius: 50%;
-            background: inherit;
-            filter: blur(20px);
-            opacity: 0.6;
-            z-index: 0;
-            pointer-events: none;
+            /* 创建独立的堆叠上下文以确保backdrop-filter生效 */
+            isolation: isolate;
         }
 
         .play-btn-blur {
             position: absolute;
             inset: 0;
             border-radius: 50%;
-            background: rgba(0, 0, 0, 0.35);
+            /* 增加背景不透明度使模糊效果更明显 */
+            background: rgba(0, 0, 0, 0.5);
             -webkit-backdrop-filter: blur(20px);
             backdrop-filter: blur(20px);
+            /* 强制GPU加速 */
+            transform: translateZ(0);
+            will-change: backdrop-filter;
             z-index: 1;
             transition: opacity 0.4s ease;
+            /* 添加轻微阴影增强视觉效果 */
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         .play-btn {
