@@ -177,9 +177,16 @@
             width: 100px;
             height: 100px;
             margin-bottom: 60px;
+            /* 初始状态 */
             opacity: 0;
             transform: scale(0.8);
-            animation: scaleIn 0.6s ease 0.4s forwards;
+            /* 改用 transition */
+            transition: opacity 0.8s ease 0.2s, transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s;
+        }
+
+        .play-btn-wrapper.visible {
+            opacity: 1;
+            transform: scale(1);
         }
 
         /* 简化播放按钮模糊背景 - 伪元素修复版 */
@@ -626,6 +633,11 @@
             bgContainer.appendChild(layer);
         });
         songSelectorBtn.textContent = musicData[currentIndex].name;
+        
+        // 触发播放按钮入场动画
+        requestAnimationFrame(() => {
+            document.querySelector('.play-btn-wrapper').classList.add('visible');
+        });
 
         // 资源预加载优化：只解码当前音频，其他仅获取并缓存
         async function preloadAllResources() {
