@@ -528,8 +528,8 @@
             transform: scale(1.1);
             transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            /* 强制使用无衬线字体，覆盖 body 的宋体设置 */
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+            /* 强制使用无衬线字体，并加入中文字体回退 */
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
         }
 
         .ios-modal-overlay.show .ios-modal {
@@ -565,11 +565,16 @@
             outline: none;
             -webkit-appearance: none;
             text-align: center;
+            /* 确保输入法正常工作 */
+            user-select: text;
+            -webkit-user-select: text;
         }
         
         .ios-modal-input:focus {
              background: rgba(255, 255, 255, 0.15);
              border-color: var(--accent-blue);
+             /* 加粗聚焦边框效果 */
+             box-shadow: 0 0 0 1px var(--accent-blue);
         }
 
         .ios-modal-actions {
@@ -665,7 +670,7 @@
                 <div class="ios-modal-title">添加定时器</div>
                 <div class="ios-modal-text">请输入定时时长</div>
                 <input type="number" class="ios-modal-input" id="timerInput" placeholder="时长 (分钟)" inputmode="numeric" pattern="[0-9]*">
-                <input type="text" class="ios-modal-input" id="aliasInput" placeholder="别名 (可选)" style="margin-top: 8px;">
+                <input type="text" class="ios-modal-input" id="aliasInput" placeholder="别名 (可选)" style="margin-top: 8px;" inputmode="text">
             </div>
             <div class="ios-modal-actions">
                 <button class="ios-modal-btn" id="modalCancelBtn">取消</button>
