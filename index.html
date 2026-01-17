@@ -499,6 +499,109 @@
             background: rgba(255, 255, 255, 0.08);
         }
 
+        /* iOS 风格输入弹窗 */
+        .ios-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+        }
+
+        .ios-modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .ios-modal {
+            width: 270px;
+            background: rgba(30, 30, 30, 0.85);
+            -webkit-backdrop-filter: blur(40px);
+            backdrop-filter: blur(40px);
+            border-radius: 14px;
+            overflow: hidden;
+            transform: scale(1.1);
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .ios-modal-overlay.show .ios-modal {
+            transform: scale(1);
+        }
+
+        .ios-modal-content {
+            padding: 20px 16px;
+            text-align: center;
+        }
+
+        .ios-modal-title {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+
+        .ios-modal-text {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .ios-modal-input {
+            width: 100%;
+            padding: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 0.5px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            color: white;
+            font-size: 14px;
+            outline: none;
+            -webkit-appearance: none;
+            text-align: center;
+        }
+        
+        .ios-modal-input:focus {
+             background: rgba(255, 255, 255, 0.15);
+             border-color: var(--accent-blue);
+        }
+
+        .ios-modal-actions {
+            display: flex;
+            border-top: 0.5px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .ios-modal-btn {
+            flex: 1;
+            height: 44px;
+            background: transparent;
+            border: none;
+            color: var(--accent-blue);
+            font-size: 17px;
+            cursor: pointer;
+            border-right: 0.5px solid rgba(255, 255, 255, 0.15);
+            transition: background 0.15s;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+        }
+
+        .ios-modal-btn:last-child {
+            border-right: none;
+        }
+
+        .ios-modal-btn:active {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .ios-modal-btn.primary {
+            font-weight: 600;
+        }
+
         @media (max-width: 480px) {
             .song-selector-btn { font-size: 2.2rem; }
         }
@@ -555,8 +658,77 @@
         <button class="ios-cancel" id="iosCancel">取消</button>
     </div>
 
+    <!-- iOS 输入弹窗 -->
+    <div class="ios-modal-overlay" id="iosInputModal">
+        <div class="ios-modal">
+            <div class="ios-modal-content">
+                <div class="ios-modal-title">添加定时器</div>
+                <div class="ios-modal-text">请输入定时时长</div>
+                <input type="number" class="ios-modal-input" id="timerInput" placeholder="时长 (分钟)" inputmode="numeric" pattern="[0-9]*">
+                <input type="text" class="ios-modal-input" id="aliasInput" placeholder="别名 (可选)" style="margin-top: 8px;">
+            </div>
+            <div class="ios-modal-actions">
+                <button class="ios-modal-btn" id="modalCancelBtn">取消</button>
+                <button class="ios-modal-btn primary" id="modalConfirmBtn">添加</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const CACHE_NAME = 'bg-sound-cache-v1';
+        
+        // 模态框逻辑变量
+        const iosInputModal = document.getElementById('iosInputModal');
+        const timerInput = document.getElementById('timerInput');
+        const aliasInput = document.getElementById('aliasInput');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+        const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+
+        function showInputModal() {
+            iosInputModal.classList.add('show');
+            timerInput.value = '';
+            aliasInput.value = '';
+            setTimeout(() => timerInput.focus(), 100);
+        }
+
+        function hideInputModal() {
+            iosInputModal.classList.remove('show');
+            timerInput.blur();
+            aliasInput.blur();
+        }
+
+        modalCancelBtn.onclick = hideInputModal;
+
+        function handleModalConfirm() {
+             const durationStr = timerInput.value;
+             if (!durationStr) return;
+             
+             const duration = parseInt(durationStr);
+             if (isNaN(duration) || duration <= 0) {
+                 timerInput.style.borderColor = '#ef4444';
+                 setTimeout(() => timerInput.style.borderColor = 'rgba(255, 255, 255, 0.1)', 1000);
+                 return;
+             }
+             
+             let label = aliasInput.value.trim();
+             if (!label) label = `${duration} 分钟`;
+             
+             customTimers.push({ label, value: duration });
+             saveToStorage('bg_customTimers', customTimers);
+             
+             hideInputModal();
+             timerBtn.click(); // 重新打开菜单
+        }
+
+        modalConfirmBtn.onclick = handleModalConfirm;
+        
+        timerInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') aliasInput.focus();
+        });
+        aliasInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleModalConfirm();
+        });
+
         const musicData = [
             { name: 'Ocean', file: 'Ocean.m4a', img: 'Ocean.jpg' },
             { name: 'Brown Noise', file: 'BrownNoise.m4a', img: 'BrownNoise.jpg' },
@@ -997,26 +1169,8 @@
         };
         
         function handleAddTimer() {
-            // 使用 setTimeout 确保菜单关闭后再弹出提示
-            setTimeout(() => {
-                const durationStr = prompt('请输入定时时长（分钟）：');
-                if (!durationStr) return;
-                
-                const duration = parseInt(durationStr);
-                if (isNaN(duration) || duration <= 0) {
-                    alert('请输入有效的分钟数');
-                    return;
-                }
-                
-                let label = prompt('请输入别名（可选）：');
-                if (!label) label = `${duration} 分钟`;
-                
-                customTimers.push({ label, value: duration });
-                saveToStorage('bg_customTimers', customTimers);
-                
-                // 重新打开菜单
-                timerBtn.click();
-            }, 300);
+            // 使用 setTimeout 确保菜单关闭后再弹出自定义弹窗
+            setTimeout(showInputModal, 300);
         }
 
         volumeBtn.onclick = () => {
