@@ -171,7 +171,7 @@
             }
         }
 
-        /* 播放按钮 - 修复模糊背景问题 */
+        /* 播放按钮 - 使用真实模糊背景 */
         .play-btn-wrapper {
             position: relative;
             width: 100px;
@@ -180,25 +180,38 @@
             opacity: 0;
             transform: scale(0.8);
             animation: scaleIn 0.6s ease 0.4s forwards;
-            /* 创建独立的堆叠上下文以确保backdrop-filter生效 */
-            isolation: isolate;
         }
 
+        /* 模糊背景层 - 使用实际的背景图片模糊 */
         .play-btn-blur {
             position: absolute;
-            inset: 0;
+            inset: -10px;
             border-radius: 50%;
-            /* 增加背景不透明度使模糊效果更明显 */
-            background: rgba(0, 0, 0, 0.5);
-            -webkit-backdrop-filter: blur(20px);
-            backdrop-filter: blur(20px);
-            /* 强制GPU加速 */
-            transform: translateZ(0);
-            will-change: backdrop-filter;
+            overflow: hidden;
             z-index: 1;
             transition: opacity 0.4s ease;
-            /* 添加轻微阴影增强视觉效果 */
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .play-btn-blur::before {
+            content: '';
+            position: absolute;
+            inset: -20px;
+            background-image: var(--current-bg-img);
+            background-size: cover;
+            background-position: center;
+            filter: blur(15px);
+            -webkit-filter: blur(15px);
+            transform: scale(1.1);
+        }
+
+        .play-btn-blur::after {
+            content: '';
+            position: absolute;
+            inset: 10px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 50%;
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
         }
 
         .play-btn {
@@ -641,6 +654,16 @@
         });
         songSelectorBtn.textContent = musicData[currentIndex].name;
 
+        // 同步播放按钮的模糊背景图片
+        function updatePlayBtnBlurBackground() {
+            const currentImg = `url('img/${musicData[currentIndex].img}')`;
+            const blurBefore = playBtnBlur.querySelector('::before') || playBtnBlur;
+            playBtnBlur.style.setProperty('--blur-bg', currentImg);
+            // 通过CSS变量设置背景
+            document.documentElement.style.setProperty('--current-bg-img', currentImg);
+        }
+        updatePlayBtnBlurBackground();
+
         // 资源预加载 - 优化性能
         async function preloadAllResources() {
             const imagePromises = [];
@@ -745,6 +768,9 @@
             currentIndex = index;
             saveToStorage('bg_currentIndex', currentIndex);
             songSelectorBtn.textContent = musicData[index].name;
+            
+            // 更新播放按钮模糊背景
+            updatePlayBtnBlurBackground();
 
             if (isPlaying && currentSource) {
                 const now = audioContext.currentTime;
