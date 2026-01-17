@@ -507,6 +507,288 @@
             background: rgba(255, 255, 255, 0.08);
         }
 
+        /* 自定义定时器编辑弹窗 */
+        .timer-edit-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .timer-edit-modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .timer-edit-container {
+            background: var(--ios-bg);
+            -webkit-backdrop-filter: blur(40px);
+            backdrop-filter: blur(40px);
+            border-radius: 14px;
+            width: 100%;
+            max-width: 360px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .timer-edit-modal.show .timer-edit-container {
+            transform: scale(1);
+        }
+
+        .timer-edit-header {
+            padding: 20px 16px 16px;
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .timer-edit-title {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .timer-edit-done {
+            background: none;
+            border: none;
+            color: var(--accent-blue);
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+
+        .timer-edit-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 0;
+        }
+
+        .timer-edit-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background: transparent;
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
+            cursor: move;
+            transition: background 0.15s ease;
+        }
+
+        .timer-edit-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .timer-edit-item.dragging {
+            opacity: 0.5;
+        }
+
+        .timer-drag-handle {
+            color: var(--text-secondary);
+            margin-right: 12px;
+            cursor: grab;
+        }
+
+        .timer-drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .timer-drag-handle svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .timer-edit-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .timer-edit-label {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+            font-size: 1rem;
+            color: var(--text-primary);
+        }
+
+        .timer-edit-time {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .timer-delete-btn {
+            background: none;
+            border: none;
+            color: var(--accent-red);
+            cursor: pointer;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 8px;
+        }
+
+        .timer-delete-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .timer-add-btn {
+            margin: 8px 16px;
+            padding: 12px;
+            background: rgba(59, 130, 246, 0.15);
+            border: none;
+            border-radius: 8px;
+            color: var(--accent-blue);
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: background 0.15s ease;
+        }
+
+        .timer-add-btn:hover {
+            background: rgba(59, 130, 246, 0.25);
+        }
+
+        .timer-add-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* 添加/编辑定时器表单 */
+        .timer-form-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 2100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .timer-form-modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .timer-form-container {
+            background: var(--ios-bg);
+            -webkit-backdrop-filter: blur(40px);
+            backdrop-filter: blur(40px);
+            border-radius: 14px;
+            width: 100%;
+            max-width: 320px;
+            padding: 20px;
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .timer-form-modal.show .timer-form-container {
+            transform: scale(1);
+        }
+
+        .timer-form-title {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .timer-form-group {
+            margin-bottom: 16px;
+        }
+
+        .timer-form-label {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .timer-form-input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .timer-form-input:focus {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: var(--accent-blue);
+        }
+
+        .timer-form-input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .timer-form-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .timer-form-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .timer-form-btn.cancel {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-primary);
+        }
+
+        .timer-form-btn.cancel:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .timer-form-btn.save {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .timer-form-btn.save:hover {
+            background: #2563eb;
+        }
+
         @media (max-width: 480px) {
             .song-selector-btn { font-size: 2.2rem; }
         }
@@ -575,6 +857,40 @@
         <button class="ios-cancel" id="iosCancel">取消</button>
     </div>
 
+    <!-- 自定义定时器编辑弹窗 -->
+    <div class="timer-edit-modal" id="timerEditModal">
+        <div class="timer-edit-container">
+            <div class="timer-edit-header">
+                <div class="timer-edit-title">自定义定时器</div>
+                <button class="timer-edit-done" id="timerEditDone">完成</button>
+            </div>
+            <div class="timer-edit-list" id="timerEditList"></div>
+            <button class="timer-add-btn" id="timerAddBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2z"/></svg>
+                添加定时器
+            </button>
+        </div>
+    </div>
+
+    <!-- 添加/编辑定时器表单 -->
+    <div class="timer-form-modal" id="timerFormModal">
+        <div class="timer-form-container">
+            <div class="timer-form-title" id="timerFormTitle">添加定时器</div>
+            <div class="timer-form-group">
+                <label class="timer-form-label">显示名称（可选）</label>
+                <input type="text" class="timer-form-input" id="timerLabelInput" placeholder="例如：午休">
+            </div>
+            <div class="timer-form-group">
+                <label class="timer-form-label">时长（分钟）</label>
+                <input type="number" class="timer-form-input" id="timerValueInput" placeholder="例如：10" min="1" max="999">
+            </div>
+            <div class="timer-form-buttons">
+                <button class="timer-form-btn cancel" id="timerFormCancel">取消</button>
+                <button class="timer-form-btn save" id="timerFormSave">保存</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const musicData = [
             { name: 'Ocean', file: 'Ocean.m4a', img: 'Ocean.jpg' },
@@ -585,11 +901,28 @@
             { name: 'White Noise', file: 'WhiteNoise.m4a', img: 'WhiteNoise.jpg' }
         ];
 
-        const timerOptions = [
+        // 默认定时器选项
+        const defaultTimerOptions = [
             { label: '15 分钟', value: 15 },
             { label: '30 分钟', value: 30 },
             { label: '1 小时', value: 60 }
         ];
+
+        // 加载自定义定时器
+        function loadCustomTimers() {
+            return loadFromStorage('custom_timers', []);
+        }
+
+        // 保存自定义定时器
+        function saveCustomTimers(timers) {
+            saveToStorage('custom_timers', timers);
+        }
+
+        // 获取所有定时器选项（自定义 + 默认）
+        function getAllTimerOptions() {
+            const customTimers = loadCustomTimers();
+            return [...customTimers, ...defaultTimerOptions];
+        }
 
         const bgContainer = document.getElementById('bgContainer');
         const playBtn = document.getElementById('playBtn');
@@ -605,6 +938,18 @@
         const iosMenuGroup = document.getElementById('iosMenuGroup');
         const iosCancel = document.getElementById('iosCancel');
         const loadingOverlay = document.getElementById('loadingOverlay');
+
+        // 自定义定时器相关元素
+        const timerEditModal = document.getElementById('timerEditModal');
+        const timerEditDone = document.getElementById('timerEditDone');
+        const timerEditList = document.getElementById('timerEditList');
+        const timerAddBtn = document.getElementById('timerAddBtn');
+        const timerFormModal = document.getElementById('timerFormModal');
+        const timerFormTitle = document.getElementById('timerFormTitle');
+        const timerLabelInput = document.getElementById('timerLabelInput');
+        const timerValueInput = document.getElementById('timerValueInput');
+        const timerFormCancel = document.getElementById('timerFormCancel');
+        const timerFormSave = document.getElementById('timerFormSave');
 
         let audioContext = null;
         let gainNode = null;
@@ -637,6 +982,7 @@
 
         let timerInterval = null;
         let remainingSeconds = 0;
+        let currentTimerLabel = null; // 存储当前定时器的别名
         const FADE_DURATION = 10;
         const CROSSFADE_TIME = 1.0;
 
@@ -992,8 +1338,16 @@
         };
 
         timerBtn.onclick = () => {
-            const items = timerOptions.map(o => ({ label: o.label, value: o.value }));
-            showIOSMenu(items, startTimer);
+            const items = getAllTimerOptions().map(o => ({ label: o.label, value: o.value }));
+            // 添加自定义按钮
+            items.push({ label: '自定义...', value: 'custom', isCustom: true });
+            showIOSMenu(items, (value) => {
+                if (value === 'custom') {
+                    showTimerEditModal();
+                } else {
+                    startTimer(value);
+                }
+            });
         };
 
         volumeBtn.onclick = () => {
@@ -1008,6 +1362,12 @@
         function startTimer(minutes) {
             if (timerInterval) clearInterval(timerInterval);
             remainingSeconds = minutes * 60;
+            
+            // 查找是否有自定义别名
+            const allTimers = getAllTimerOptions();
+            const timerOption = allTimers.find(t => t.value === minutes);
+            currentTimerLabel = timerOption && timerOption.label ? timerOption.label : null;
+            
             updateCountdownUI();
             countdownContainer.classList.add('visible');
             countdownContainer.classList.remove('ending');
@@ -1043,6 +1403,7 @@
             if (timerInterval) clearInterval(timerInterval);
             timerInterval = null;
             remainingSeconds = 0;
+            currentTimerLabel = null;
             countdownContainer.classList.remove('visible', 'ending');
             // 只在播放时才恢复音量
             if (isPlaying && gainNode && audioContext) {
@@ -1052,8 +1413,198 @@
 
         function updateCountdownUI() {
             const m = Math.floor(remainingSeconds / 60);
-            countdownTime.textContent = `${m} min`;
+            // 如果有自定义别名，显示别名，否则显示时长
+            if (currentTimerLabel) {
+                countdownTime.textContent = currentTimerLabel;
+            } else {
+                countdownTime.textContent = `${m} min`;
+            }
         }
+
+        // ==================== 自定义定时器功能 ====================
+        
+        let draggedItem = null;
+        let editingTimerIndex = null;
+
+        // 显示定时器编辑弹窗
+        function showTimerEditModal() {
+            hideIOSMenu();
+            renderTimerEditList();
+            timerEditModal.classList.add('show');
+        }
+
+        // 隐藏定时器编辑弹窗
+        function hideTimerEditModal() {
+            timerEditModal.classList.remove('show');
+        }
+
+        // 渲染定时器编辑列表
+        function renderTimerEditList() {
+            const customTimers = loadCustomTimers();
+            timerEditList.innerHTML = '';
+
+            customTimers.forEach((timer, index) => {
+                const item = document.createElement('div');
+                item.className = 'timer-edit-item';
+                item.draggable = true;
+                item.dataset.index = index;
+
+                const displayLabel = timer.label || `${timer.value} 分钟`;
+                const timeText = timer.label ? `${timer.value} 分钟` : '';
+
+                item.innerHTML = `
+                    <div class="timer-drag-handle">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M9 20q-.825 0-1.412-.587T7 18t.588-1.412T9 16t1.413.588T11 18t-.587 1.413T9 20m6 0q-.825 0-1.412-.587T13 18t.588-1.412T15 16t1.413.588T17 18t-.587 1.413T15 20M9 14q-.825 0-1.412-.587T7 12t.588-1.412T9 10t1.413.588T11 12t-.587 1.413T9 14m6 0q-.825 0-1.412-.587T13 12t.588-1.412T15 10t1.413.588T17 12t-.587 1.413T15 14M9 8q-.825 0-1.412-.587T7 6t.588-1.412T9 4t1.413.588T11 6t-.587 1.413T9 8m6 0q-.825 0-1.412-.587T13 6t.588-1.412T15 4t1.413.588T17 6t-.587 1.413T15 8"/></svg>
+                    </div>
+                    <div class="timer-edit-content">
+                        <div class="timer-edit-label">${displayLabel}</div>
+                        ${timeText ? `<div class="timer-edit-time">${timeText}</div>` : ''}
+                    </div>
+                    <button class="timer-delete-btn" data-index="${index}">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M7 21q-.825 0-1.412-.587T5 19V6H4V4h5V3h6v1h5v2h-1v13q0 .825-.587 1.413T17 21zM17 6H7v13h10zM9 17h2V8H9zm4 0h2V8h-2zM7 6v13z"/></svg>
+                    </button>
+                `;
+
+                // 拖拽事件
+                item.addEventListener('dragstart', handleDragStart);
+                item.addEventListener('dragend', handleDragEnd);
+                item.addEventListener('dragover', handleDragOver);
+                item.addEventListener('drop', handleDrop);
+
+                // 点击编辑
+                item.querySelector('.timer-edit-content').addEventListener('click', () => {
+                    editingTimerIndex = index;
+                    showTimerForm(timer);
+                });
+
+                // 删除按钮
+                item.querySelector('.timer-delete-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteTimer(index);
+                });
+
+                timerEditList.appendChild(item);
+            });
+        }
+
+        // 拖拽处理函数
+        function handleDragStart(e) {
+            draggedItem = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd() {
+            this.classList.remove('dragging');
+            draggedItem = null;
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+
+            if (this === draggedItem) return;
+
+            const items = Array.from(timerEditList.children);
+            const draggedIndex = items.indexOf(draggedItem);
+            const targetIndex = items.indexOf(this);
+
+            if (draggedIndex < targetIndex) {
+                this.parentNode.insertBefore(draggedItem, this.nextSibling);
+            } else {
+                this.parentNode.insertBefore(draggedItem, this);
+            }
+        }
+
+        function handleDrop(e) {
+            e.stopPropagation();
+            
+            // 更新存储顺序
+            const customTimers = loadCustomTimers();
+            const items = Array.from(timerEditList.children);
+            const newOrder = items.map(item => customTimers[parseInt(item.dataset.index)]);
+            saveCustomTimers(newOrder);
+            renderTimerEditList();
+        }
+
+        // 显示添加/编辑表单
+        function showTimerForm(timer = null) {
+            if (timer) {
+                timerFormTitle.textContent = '编辑定时器';
+                timerLabelInput.value = timer.label || '';
+                timerValueInput.value = timer.value;
+            } else {
+                timerFormTitle.textContent = '添加定时器';
+                timerLabelInput.value = '';
+                timerValueInput.value = '';
+                editingTimerIndex = null;
+            }
+            timerFormModal.classList.add('show');
+        }
+
+        // 隐藏表单
+        function hideTimerForm() {
+            timerFormModal.classList.remove('show');
+        }
+
+        // 保存定时器
+        function saveTimer() {
+            const label = timerLabelInput.value.trim();
+            const value = parseInt(timerValueInput.value);
+
+            if (!value || value < 1) {
+                alert('请输入有效的时长');
+                return;
+            }
+
+            const customTimers = loadCustomTimers();
+            const timerData = {
+                label: label,
+                value: value
+            };
+
+            if (editingTimerIndex !== null) {
+                // 编辑现有定时器
+                customTimers[editingTimerIndex] = timerData;
+            } else {
+                // 添加新定时器
+                customTimers.push(timerData);
+            }
+
+            saveCustomTimers(customTimers);
+            hideTimerForm();
+            renderTimerEditList();
+        }
+
+        // 删除定时器
+        function deleteTimer(index) {
+            const customTimers = loadCustomTimers();
+            customTimers.splice(index, 1);
+            saveCustomTimers(customTimers);
+            renderTimerEditList();
+        }
+
+        // 事件监听
+        timerEditDone.onclick = hideTimerEditModal;
+        timerAddBtn.onclick = () => showTimerForm();
+        timerFormCancel.onclick = hideTimerForm;
+        timerFormSave.onclick = saveTimer;
+        timerEditModal.onclick = (e) => {
+            if (e.target === timerEditModal) hideTimerEditModal();
+        };
+        timerFormModal.onclick = (e) => {
+            if (e.target === timerFormModal) hideTimerForm();
+        };
+
+        // 表单回车提交
+        timerValueInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') saveTimer();
+        });
+        timerLabelInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') saveTimer();
+        });
+
+        // ==================== 结束自定义定时器功能 ====================
 
         // 启动预加载
         preloadAllResources();
