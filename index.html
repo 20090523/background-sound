@@ -182,11 +182,6 @@
             animation: scaleIn 0.6s ease 0.4s forwards;
         }
 
-        /* 移除复杂的模糊背景层 */
-        .play-btn-blur {
-            display: none; /* 不再需要这个元素 */
-        }
-
         .play-btn {
             width: 100%;
             height: 100%;
@@ -622,7 +617,7 @@
         }
 
         .timer-add-btn {
-            margin: 8px 16px;
+            margin: 16px;
             padding: 12px;
             background: rgba(59, 130, 246, 0.15);
             border: none;
@@ -821,7 +816,6 @@
             <button class="play-btn" id="playBtn">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M6 10a7 7 0 1 1 13 3.6a10 10 0 0 1-2 2a8 8 0 0 0-2 3A4.5 4.5 0 0 1 8.2 20"/><path d="M10 10a3 3 0 1 1 5 2.2"/></g></svg>
             </button>
-            <div class="play-btn-blur" id="playBtnBlur"></div>
         </div>
     </div>
 
@@ -919,13 +913,17 @@
 
         // 获取所有定时器选项（自定义 + 默认）
         function getAllTimerOptions() {
-            const customTimers = loadCustomTimers();
-            // 为每个选项添加唯一ID
-            const allTimers = [...customTimers, ...defaultTimerOptions].map(timer => ({
+            const customTimers = loadCustomTimers().map((timer, index) => ({
+                ...timer,
+                id: `custom-${index}` // 使用索引确保ID唯一，解决同名/同在一时长问题
+            }));
+            
+            const defaultTimers = defaultTimerOptions.map(timer => ({
                 ...timer,
                 id: generateTimerId(timer)
             }));
-            return allTimers;
+
+            return [...customTimers, ...defaultTimers];
         }
 
         const bgContainer = document.getElementById('bgContainer');
@@ -1357,16 +1355,9 @@
         }
 
         function updateCountdownUI() {
-            const allTimers = getAllTimerOptions();
-            // 修复 #2：通过唯一ID查找定时器
-            const timerOption = allTimers.find(t => t.id === currentTimerId);
-            
-            if (timerOption && timerOption.label) {
-                countdownTime.textContent = timerOption.label;
-            } else {
-                const m = Math.ceil(remainingSeconds / 60);
-                countdownTime.textContent = `${m} min`;
-            }
+            // 修复 #5：不再显示别名，始终显示剩余时间 "x min"
+            const m = Math.ceil(remainingSeconds / 60);
+            countdownTime.textContent = `${m} min`;
         }
 
         // ==================== 自定义定时器功能 ====================
