@@ -37,7 +37,7 @@
             background: #1a1a1a;
         }
 
-        /* 加载遮罩 */
+        /* 加载遮罩 - 优化尺寸 */
         .loading-overlay {
             position: fixed;
             inset: 0;
@@ -59,8 +59,8 @@
 
         .loader {
             position: relative;
-            width: 54px;
-            height: 54px;
+            width: 36px;
+            height: 36px;
             border-radius: 10px;
         }
 
@@ -171,7 +171,7 @@
             }
         }
 
-        /* 播放按钮 */
+        /* 播放按钮 - 修复模糊背景问题 */
         .play-btn-wrapper {
             position: relative;
             width: 100px;
@@ -182,7 +182,19 @@
             animation: scaleIn 0.6s ease 0.4s forwards;
         }
 
-        /* 模糊背景层 - 独立元素实现模糊 */
+        /* 关键修复：使用伪元素实现真正的背景模糊 */
+        .play-btn-wrapper::before {
+            content: '';
+            position: absolute;
+            inset: -20px;
+            border-radius: 50%;
+            background: inherit;
+            filter: blur(20px);
+            opacity: 0.6;
+            z-index: 0;
+            pointer-events: none;
+        }
+
         .play-btn-blur {
             position: absolute;
             inset: 0;
@@ -191,6 +203,7 @@
             -webkit-backdrop-filter: blur(20px);
             backdrop-filter: blur(20px);
             z-index: 1;
+            transition: opacity 0.4s ease;
         }
 
         .play-btn {
@@ -214,7 +227,7 @@
             color: var(--accent-blue);
         }
 
-        .play-btn.playing + .play-btn-blur {
+        .play-btn.playing ~ .play-btn-blur {
             opacity: 0;
         }
 
@@ -283,7 +296,7 @@
             height: 24px;
         }
 
-        /* 倒计时显示 - 透明简洁风格 */
+        /* 倒计时显示 */
         .countdown-container {
             position: absolute;
             left: 50%;
@@ -555,7 +568,6 @@
     </div>
 
     <script>
-        const CACHE_NAME = 'bg-sound-cache-v1';
         const musicData = [
             { name: 'Ocean', file: 'Ocean.m4a', img: 'Ocean.jpg' },
             { name: 'Brown Noise', file: 'BrownNoise.m4a', img: 'BrownNoise.jpg' },
@@ -591,54 +603,39 @@
         let currentSource = null;
         const audioBufferCache = {};
 
-        // 持久化存储辅助函数 - 使用 cookie 作为存储
-        const storage = {
-            _cache: {},
-            set(key, value) {
-                this._cache[key] = value;
-                try {
-                    const expires = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toUTCString();
-                    document.cookie = `${encodeURIComponent(key)}=${encodeURIComponent(JSON.stringify(value))}; expires=${expires}; path=/; SameSite=Lax`;
-                } catch (e) {}
-            },
-            get(key, defaultValue) {
-                if (key in this._cache) return this._cache[key];
-                try {
-                    const cookies = document.cookie.split('; ');
-                    for (const cookie of cookies) {
-                        const [k, v] = cookie.split('=');
-                        if (decodeURIComponent(k) === key) {
-                            const val = JSON.parse(decodeURIComponent(v));
-                            this._cache[key] = val;
-                            return val;
-                        }
-                    }
-                } catch (e) {}
-                return defaultValue;
-            }
-        };
-
+        // 使用 localStorage 替代 Cookie
         function saveToStorage(key, value) {
-            storage.set(key, value);
+            try {
+                localStorage.setItem(key, JSON.stringify(value));
+            } catch (e) {
+                console.error('存储失败:', e);
+            }
         }
 
         function loadFromStorage(key, defaultValue) {
-            return storage.get(key, defaultValue);
+            try {
+                const item = localStorage.getItem(key);
+                return item ? JSON.parse(item) : defaultValue;
+            } catch (e) {
+                return defaultValue;
+            }
         }
 
         let currentIndex = loadFromStorage('bg_currentIndex', 0);
         let baseVolume = loadFromStorage('bg_baseVolume', 0.8);
         let isPlaying = false;
         let isLoading = false;
-        let switchId = 0; // 用于防止切换音乐时的竞态
+        let switchId = 0;
 
         let timerInterval = null;
         let remainingSeconds = 0;
         const FADE_DURATION = 10;
         const CROSSFADE_TIME = 1.0;
 
-        // 水波纹控制
+        // 水波纹控制 - 优化性能
         let rippleInterval = null;
+        let lastRippleTime = 0;
+        const RIPPLE_THROTTLE = 950; // 略小于1000ms以确保流畅
 
         // 初始化背景
         musicData.forEach((item, index) => {
@@ -649,9 +646,8 @@
         });
         songSelectorBtn.textContent = musicData[currentIndex].name;
 
-        // 资源预加载
+        // 资源预加载 - 优化性能
         async function preloadAllResources() {
-            const cache = await caches.open(CACHE_NAME).catch(() => null);
             const imagePromises = [];
             const audioPromises = [];
 
@@ -665,31 +661,26 @@
                     img.src = imgUrl;
                 });
                 imagePromises.push(promise);
-
-                // 缓存到 Cache API
-                if (cache) {
-                    cache.match(imgUrl).then(resp => {
-                        if (!resp) fetch(imgUrl).then(r => cache.put(imgUrl, r)).catch(() => {});
-                    });
-                }
             });
 
-            // 预加载所有音频
+            // 初始化音频上下文
             initAudioContext();
-            for (const item of musicData) {
-                const audioUrl = `music/${item.file}`;
-                const promise = loadAudioBuffer(audioUrl).catch(() => null);
-                audioPromises.push(promise);
+            
+            // 优先加载当前音乐
+            const currentAudioUrl = `music/${musicData[currentIndex].file}`;
+            await loadAudioBuffer(currentAudioUrl).catch(() => null);
 
-                // 缓存到 Cache API
-                if (cache) {
-                    cache.match(audioUrl).then(resp => {
-                        if (!resp) fetch(audioUrl).then(r => cache.put(audioUrl, r.clone())).catch(() => {});
-                    });
+            // 后台加载其他音乐
+            for (let i = 0; i < musicData.length; i++) {
+                if (i !== currentIndex) {
+                    const audioUrl = `music/${musicData[i].file}`;
+                    audioPromises.push(loadAudioBuffer(audioUrl).catch(() => null));
                 }
             }
 
-            await Promise.all([...imagePromises, ...audioPromises]);
+            await Promise.all(imagePromises);
+            Promise.all(audioPromises); // 不等待其他音频加载完成
+            
             loadingOverlay.classList.add('hidden');
         }
 
@@ -706,32 +697,26 @@
         async function loadAudioBuffer(url) {
             if (audioBufferCache[url]) return audioBufferCache[url];
 
-            // 尝试从 Cache API 获取
-            let response;
-            try {
-                const cache = await caches.open(CACHE_NAME);
-                response = await cache.match(url);
-            } catch (e) {}
-
-            if (!response) {
-                response = await fetch(url);
-            }
-
+            const response = await fetch(url);
             const arrayBuffer = await response.arrayBuffer();
             const buffer = await audioContext.decodeAudioData(arrayBuffer);
             audioBufferCache[url] = buffer;
             return buffer;
         }
 
-        // 水波纹管理
+        // 水波纹管理 - 性能优化
         function createRipple() {
+            const now = Date.now();
+            if (now - lastRippleTime < RIPPLE_THROTTLE) return;
+            lastRippleTime = now;
+
             const ripple = document.createElement('div');
             ripple.className = 'ripple';
             rippleContainer.appendChild(ripple);
 
             ripple.addEventListener('animationend', () => {
                 ripple.remove();
-            });
+            }, { once: true });
         }
 
         function startRipples() {
@@ -745,9 +730,11 @@
                 clearInterval(rippleInterval);
                 rippleInterval = null;
             }
+            // 清理现有水波纹
+            rippleContainer.innerHTML = '';
         }
 
-        // 切换音乐 - 修复竞态条件
+        // 切换音乐 - 优化性能
         async function switchMusic(index) {
             if (currentIndex === index || isLoading) return;
 
@@ -760,7 +747,6 @@
             bgLayers[currentIndex].classList.remove('active');
             bgLayers[index].classList.add('active');
 
-            const prevIndex = currentIndex;
             currentIndex = index;
             saveToStorage('bg_currentIndex', currentIndex);
             songSelectorBtn.textContent = musicData[index].name;
@@ -771,7 +757,6 @@
                 gainNode.gain.setValueAtTime(gainNode.gain.value, now);
                 gainNode.gain.linearRampToValueAtTime(0, now + CROSSFADE_TIME);
 
-                // 停止当前音频
                 const oldSource = currentSource;
                 currentSource = null;
 
@@ -779,11 +764,9 @@
                     try { oldSource.stop(); oldSource.disconnect(); } catch(e) {}
                 }, CROSSFADE_TIME * 1000);
 
-                // 加载新音频
                 try {
                     const buffer = await loadAudioBuffer(`music/${musicData[index].file}`);
 
-                    // 检查是否还是当前的切换操作
                     if (thisSwitchId !== switchId) {
                         isLoading = false;
                         songSelectorBtn.style.opacity = '1';
@@ -792,7 +775,6 @@
 
                     await new Promise(r => setTimeout(r, CROSSFADE_TIME * 1000));
 
-                    // 再次检查
                     if (thisSwitchId !== switchId || !isPlaying) {
                         isLoading = false;
                         songSelectorBtn.style.opacity = '1';
@@ -809,7 +791,7 @@
                     gainNode.gain.setValueAtTime(0, audioContext.currentTime);
                     gainNode.gain.linearRampToValueAtTime(baseVolume, audioContext.currentTime + CROSSFADE_TIME);
                 } catch(e) {
-                    console.error('Failed to switch music:', e);
+                    console.error('切换音乐失败:', e);
                 } finally {
                     isLoading = false;
                     songSelectorBtn.style.opacity = '1';
@@ -835,7 +817,6 @@
                 currentSource = null;
                 isPlaying = false;
                 playBtn.classList.remove('playing');
-                playBtnBlur.style.opacity = '1';
 
                 setTimeout(() => {
                     try { if (oldSource) { oldSource.stop(); oldSource.disconnect(); } } catch(e) {}
@@ -857,10 +838,12 @@
                     gainNode.gain.linearRampToValueAtTime(baseVolume, audioContext.currentTime + CROSSFADE_TIME);
 
                     playBtn.classList.add('playing');
-                    playBtnBlur.style.opacity = '0';
                     isPlaying = true;
                     startRipples();
-                } finally { isLoading = false; songSelectorBtn.style.opacity = '1'; }
+                } finally { 
+                    isLoading = false; 
+                    songSelectorBtn.style.opacity = '1'; 
+                }
             }
         }
 
@@ -884,7 +867,6 @@
             iosMenuGroup.innerHTML = '';
 
             if (menuType === 'volume') {
-                // 音量滑块菜单
                 const header = document.createElement('div');
                 header.className = 'ios-volume-header';
                 header.innerHTML = '<span class="ios-volume-title">音量调节</span>';
@@ -908,7 +890,6 @@
                 `;
                 iosMenuGroup.appendChild(volumeContainer);
 
-                // 初始化音量滑块
                 setTimeout(() => {
                     const slider = document.getElementById('iosVolumeSlider');
                     const fill = document.getElementById('iosVolumeFill');
@@ -929,7 +910,7 @@
                         saveToStorage('bg_baseVolume', baseVolume);
                         updateVolumeUI(percent);
 
-                        // 只有在播放时才调整音量
+                        // 只在播放且未进入淡出阶段时调整音量
                         if (isPlaying && gainNode && audioContext && (remainingSeconds <= 0 || remainingSeconds > FADE_DURATION)) {
                             gainNode.gain.cancelScheduledValues(audioContext.currentTime);
                             gainNode.gain.setValueAtTime(baseVolume, audioContext.currentTime);
@@ -955,7 +936,6 @@
                     }, { passive: true });
                 }, 0);
             } else if (menuType === 'countdown') {
-                // 倒计时操作菜单
                 const btn = document.createElement('button');
                 btn.className = 'ios-menu-item danger';
                 btn.textContent = '停止定时';
@@ -963,7 +943,6 @@
                 btn.onclick = () => { clearTimer(); hideIOSMenu(); };
                 iosMenuGroup.appendChild(btn);
             } else {
-                // 常规菜单项
                 items.forEach(item => {
                     const btn = document.createElement('button');
                     btn.className = 'ios-menu-item';
@@ -1000,11 +979,11 @@
             showIOSMenu([], null, 'volume');
         };
 
-        // 点击倒计时显示操作菜单
         countdownContainer.onclick = () => {
             showIOSMenu([], null, 'countdown');
         };
 
+        // 定时器功能 - 性能优化
         function startTimer(minutes) {
             if (timerInterval) clearInterval(timerInterval);
             remainingSeconds = minutes * 60;
@@ -1012,19 +991,29 @@
             countdownContainer.classList.add('visible');
             countdownContainer.classList.remove('ending');
 
+            // 使用 requestAnimationFrame 优化定时器性能
+            let lastTime = Date.now();
+            
             timerInterval = setInterval(() => {
-                remainingSeconds--;
-                if (remainingSeconds <= 0) {
-                    if (isPlaying) togglePlay();
-                    clearTimer();
-                } else {
-                    // 只有在播放时才渐弱
-                    if (remainingSeconds <= FADE_DURATION && isPlaying && gainNode && audioContext) {
-                        const ratio = remainingSeconds / FADE_DURATION;
-                        gainNode.gain.setValueAtTime(baseVolume * ratio, audioContext.currentTime);
-                        countdownContainer.classList.add('ending');
+                const now = Date.now();
+                const elapsed = Math.floor((now - lastTime) / 1000);
+                
+                if (elapsed > 0) {
+                    lastTime = now;
+                    remainingSeconds -= elapsed;
+                    
+                    if (remainingSeconds <= 0) {
+                        if (isPlaying) togglePlay();
+                        clearTimer();
+                    } else {
+                        // 只在播放时才渐弱
+                        if (remainingSeconds <= FADE_DURATION && isPlaying && gainNode && audioContext) {
+                            const ratio = remainingSeconds / FADE_DURATION;
+                            gainNode.gain.setValueAtTime(baseVolume * ratio, audioContext.currentTime);
+                            countdownContainer.classList.add('ending');
+                        }
+                        updateCountdownUI();
                     }
-                    updateCountdownUI();
                 }
             }, 1000);
         }
@@ -1034,7 +1023,7 @@
             timerInterval = null;
             remainingSeconds = 0;
             countdownContainer.classList.remove('visible', 'ending');
-            // 只有在播放时才恢复音量
+            // 只在播放时才恢复音量
             if (isPlaying && gainNode && audioContext) {
                 gainNode.gain.setValueAtTime(baseVolume, audioContext.currentTime);
             }
@@ -1050,4 +1039,3 @@
     </script>
 </body>
 </html>
-
